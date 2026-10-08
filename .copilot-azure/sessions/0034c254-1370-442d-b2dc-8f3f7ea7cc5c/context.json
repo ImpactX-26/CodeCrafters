@@ -1,0 +1,28 @@
+{
+  "sessionId": "0034c254-1370-442d-b2dc-8f3f7ea7cc5c",
+  "createdUtc": "2026-10-08T17:21:00.000Z",
+  "lastModifiedUtc": "2026-10-08T17:21:41.000Z",
+  "currentPhase": "prereq",
+  "completedPhases": [],
+  "statusSummary": "Paused at prereq — Azure CLI installation was cancelled and no Azure subscription is connected.",
+  "intent": {
+    "userPrompt": "Deploy the existing Journova application to Azure.",
+    "description": "Deploy the existing Express Node.js application to Azure while preserving its current data-backed application and admin features."
+  },
+  "components": [],
+  "azure": {
+    "subscriptionId": "",
+    "subscriptionName": "",
+    "resourceGroup": "",
+    "region": ""
+  },
+  "repo": {
+    "remote": "https://github.com/ImpactX-26/CodeCrafters.git"
+  },
+  "app": {
+    "name": "journova-ai"
+  },
+  "detectedInfra": [],
+  "detectedServices": [],
+  "overrides": []
+}

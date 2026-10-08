@@ -29,6 +29,19 @@
     .stat { padding:15px 17px; }
     .stat span { color:var(--muted); font-size:11px; }
     .stat strong { display:block; margin-top:3px; font-size:25px; line-height:1.2; }
+    .market-panel { margin:0 0 18px; padding:17px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(145deg,rgba(255,255,255,.035),transparent),var(--surface); }
+    .market-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .market-panel h2 { margin:0; font-size:15px; }
+    .market-panel-intro,.market-panel-note { margin:4px 0 0; color:var(--muted); font-size:10px; line-height:1.5; }
+    .market-counts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .market-count { min-width:0; padding:13px; border:1px solid var(--line); border-radius:12px; background:rgba(4,8,18,.22); }
+    .market-count span { display:block; color:var(--muted); font-size:10px; }
+    .market-count strong { display:block; margin:5px 0; color:var(--accent); font-size:clamp(20px,3vw,26px); line-height:1.1; }
+    .market-count small { display:block; margin-top:4px; color:var(--muted); font-size:9px; line-height:1.4; }
+    .market-links { display:flex; flex-wrap:wrap; gap:7px 11px; margin-top:9px; }
+    .market-links a { color:var(--accent); font-size:9px; font-weight:750; text-decoration:none; }
+    .market-links a:hover,.market-links a:focus-visible { text-decoration:underline; text-underline-offset:3px; }
+    .market-panel-note { margin-top:11px; }
     .controls { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 0 12px; }
     .controls label { color:var(--muted); font-size:11px; }
     select,input,textarea { width:100%; min-height:43px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; outline:none; color:var(--text); background:#0d1422; }
@@ -85,6 +98,8 @@
       .stat { padding:12px 10px; }
       .stat strong { font-size:21px; }
       .stat span { font-size:9px; }
+      .market-counts { grid-template-columns:1fr; }
+      .market-panel-head { align-items:stretch; flex-direction:column; }
       .meta-grid { grid-template-columns:1fr 1fr; }
       .card-top { align-items:flex-start; }
       .review-card { padding:14px; }
@@ -127,6 +142,14 @@
       <p class="intro">Inspect each private upload and its screening report, then record a review decision with evidence or a clear applicant action.</p>
       <p class="notice"><strong>Review scope:</strong> “Approved” means a human visual/readability review only. It does not establish that a certificate is genuine or guarantee official acceptance.</p>
       <p class="notice"><strong>To verify authenticity:</strong> use the issuing university, board, language-test provider or other authority’s official certificate lookup/QR service when available. Otherwise contact the issuer using details found independently on its official website—not only details printed on the certificate. Check certificate/reference numbers and applicant details with the issuer. A QR code or good-looking scan alone is not proof.</p>
+      <section class="market-panel" aria-labelledby="marketHeading">
+        <div class="market-panel-head">
+          <div><h2 id="marketHeading">Germany opportunity overview</h2><p class="market-panel-intro">Current national totals from official catalogues. These are market counts, not applicant-specific recommendations.</p></div>
+          <button class="button quiet" id="refreshMarketCounts" type="button">Refresh counts</button>
+        </div>
+        <div class="market-counts" id="adminMarketCounts" aria-live="polite"><div class="empty">Loading official counts…</div></div>
+        <p class="market-panel-note" id="marketCountsNote">Official source counts refresh every 15 minutes. Search links open the source website.</p>
+      </section>
       <div class="stats" aria-label="Review totals">
         <article class="stat"><span>Awaiting review</span><strong id="pendingCount">0</strong></article>
         <article class="stat"><span>Re-upload requested</span><strong id="changesCount">0</strong></article>
@@ -154,6 +177,7 @@
     const authView = document.getElementById("authView");
     const portalView = document.getElementById("portalView");
     const queue = document.getElementById("queue");
+    const marketCountsElement = document.getElementById("adminMarketCounts");
     const statusFilter = document.getElementById("statusFilter");
     const emailForm = document.getElementById("emailForm");
     const codeForm = document.getElementById("codeForm");
@@ -195,6 +219,34 @@
       authView.hidden = true;
       portalView.hidden = false;
       loadQueue();
+      loadMarketCounts();
+    }
+    function renderMarketCounts(counts) {
+      const categories = [
+        ["jobs", "Open job vacancies · Germany"],
+        ["training", "Ausbildung & dual-study vacancies · Germany"],
+        ["study", "Degree programmes · Germany"]
+      ];
+      marketCountsElement.innerHTML = categories.map(([key, title]) => {
+        const entry = counts?.[key];
+        const available = entry?.status === "available" && Number.isSafeInteger(entry.count);
+        const updated = entry?.updatedAt ? new Date(entry.updatedAt).toLocaleString() : "";
+        const freshness = !available
+          ? "Count temporarily unavailable"
+          : `${entry.stale ? "Last successful update" : "Updated"} ${updated}`;
+        const links = Array.isArray(entry?.links) ? entry.links : [];
+        return `<article class="market-count"><span>${title}</span><strong>${available ? entry.count.toLocaleString("en-US") : "Unavailable"}</strong><small>${freshness}</small><small>Source: ${escapeHtml(entry?.name || "Official data source")}</small><div class="market-links">${links.map((link) => `<a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.title)} ↗</a>`).join("")}</div></article>`;
+      }).join("");
+    }
+    async function loadMarketCounts() {
+      marketCountsElement.innerHTML = `<div class="empty">Loading official counts…</div>`;
+      try {
+        const result = await api("/api/admin/market-counts");
+        renderMarketCounts(result.counts);
+      } catch (error) {
+        console.error("Journova Admin could not load official market counts.", error);
+        marketCountsElement.innerHTML = `<div class="empty">Official counts are unavailable right now. Try refreshing in a moment.</div>`;
+      }
     }
     async function initialize() {
       try {
@@ -320,6 +372,7 @@
       } catch (error) { announce(error.message); }
     });
     statusFilter.addEventListener("change", renderQueue);
+    document.getElementById("refreshMarketCounts").addEventListener("click", loadMarketCounts);
     queue.addEventListener("click", async (event) => {
       const button = event.target.closest("[data-review]");
       if (!button) return;

@@ -22,6 +22,37 @@ const AUTH_WINDOW = 15 * 60 * 1000;
 const JOURNEY_FIELDS = ["goal", "field", "education", "marks", "english", "german", "experience", "age", "funds", "startDate", "selectedRoute", "cvData"];
 const ADMIN_FILE = path.join(__dirname, "admin.html");
 const VALID_GOALS = new Set(["Study", "Ausbildung", "Job"]);
+const MARKET_COUNT_CACHE_TTL = 15 * 60 * 1000;
+const MARKET_COUNT_CACHE = { jobs: null, training: null, study: null };
+const MARKET_COUNT_SOURCES = {
+  jobs: {
+    name: "Federal Employment Agency · Job Search API",
+    label: "Germany-wide job vacancies",
+    url: "https://jobsuche.api.bund.dev/",
+    links: [
+      { title: "Search jobs", url: "https://www.arbeitsagentur.de/jobsuche/" },
+      { title: "Make it in Germany jobs", url: "https://www.make-it-in-germany.com/en/working-in-germany/job-listings" }
+    ]
+  },
+  training: {
+    name: "Federal Employment Agency · Job Search API",
+    label: "Ausbildung & dual-study vacancies",
+    url: "https://jobsuche.api.bund.dev/",
+    links: [
+      { title: "Search Ausbildung vacancies", url: "https://www.arbeitsagentur.de/jobsuche/" },
+      { title: "Vocational training in Germany", url: "https://www.make-it-in-germany.com/en/study-vocational-training/training-in-germany" }
+    ]
+  },
+  study: {
+    name: "DAAD / HRK Higher Education Compass",
+    label: "Degree programmes in Germany",
+    url: "https://www.daad.de/en/studying-in-germany/universities/all-degree-programmes/",
+    links: [
+      { title: "Browse study programmes", url: "https://www.daad.de/en/studying-in-germany/universities/all-degree-programmes/" },
+      { title: "Study in Germany", url: "https://www.study-in-germany.de/en/" }
+    ]
+  }
+};
 const REQUIRED_DOCUMENTS = [
   { id: "passport", title: "Passport" },
   { id: "academic", title: "Marksheets / degree" },
@@ -91,6 +122,67 @@ function parseJson(value, fallback = {}) {
   } catch {
     return fallback;
   }
+}
+
+async function fetchFederalEmploymentCount(offerType) {
+  const url = new URL("https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs");
+  url.searchParams.set("page", "1");
+  url.searchParams.set("size", "1");
+  url.searchParams.set("angebotsart", String(offerType));
+  const response = await fetch(url, {
+    headers: { "X-API-Key": "jobboerse-jobsuche", Accept: "application/json" },
+    signal: AbortSignal.timeout(10000)
+  });
+  if (!response.ok) throw new Error(`Federal Employment Agency returned HTTP ${response.status}.`);
+  const result = await response.json();
+  const count = Number(result.maxErgebnisse);
+  if (!Number.isSafeInteger(count) || count < 0) throw new Error("Federal Employment Agency response did not contain a valid vacancy count.");
+  return count;
+}
+
+async function fetchStudyProgrammeCount() {
+  const response = await fetch(MARKET_COUNT_SOURCES.study.url, { signal: AbortSignal.timeout(10000) });
+  if (!response.ok) throw new Error(`DAAD catalogue returned HTTP ${response.status}.`);
+  const page = await response.text();
+  const match = page.match(/([\d,.]+)\s+study programmes found for your filters/i);
+  if (!match) throw new Error("DAAD catalogue did not publish a count in its page content.");
+  const count = Number(match[1].replace(/[,.]/g, ""));
+  if (!Number.isSafeInteger(count) || count < 0) throw new Error("DAAD catalogue returned an invalid degree-programme count.");
+  return count;
+}
+
+async function getMarketCount(key, loadCount) {
+  const cached = MARKET_COUNT_CACHE[key];
+  if (cached && Date.now() - cached.updatedAt < MARKET_COUNT_CACHE_TTL) {
+    return { ...cached, status: "available", stale: false };
+  }
+  try {
+    const count = await loadCount();
+    const value = { count, updatedAt: Date.now(), status: "available", stale: false };
+    MARKET_COUNT_CACHE[key] = value;
+    return value;
+  } catch (error) {
+    console.error(`Could not refresh the ${key} market count.`, error);
+    return cached
+      ? { ...cached, status: "available", stale: true }
+      : { count: null, updatedAt: null, status: "unavailable", stale: false };
+  }
+}
+
+async function marketCountsSnapshot() {
+  const [jobs, training, study] = await Promise.all([
+    getMarketCount("jobs", () => fetchFederalEmploymentCount(1)),
+    getMarketCount("training", () => fetchFederalEmploymentCount(4)),
+    getMarketCount("study", fetchStudyProgrammeCount)
+  ]);
+  return {
+    counts: {
+      jobs: { ...MARKET_COUNT_SOURCES.jobs, ...jobs },
+      training: { ...MARKET_COUNT_SOURCES.training, ...training },
+      study: { ...MARKET_COUNT_SOURCES.study, ...study }
+    },
+    cacheTtlMinutes: MARKET_COUNT_CACHE_TTL / 60000
+  };
 }
 
 function normalizeCvData(value) {
@@ -182,7 +274,8 @@ function buildDocumentVerificationReport({ docId, extension, size, verified, tip
   if (supportedText && text) {
     const labels = {
       name: /^(?:name|full name)\s*[:\-]\s*(.{1,200})$/im,
-      institution: /^(?:institution|issuing authority)\s*[:\-]\s*(.{1,200})$/im,
+      institution: /^institution\s*[:\-]\s*(.{1,200})$/im,
+      issuingAuthority: /^(?:issuing authority|issuer)\s*[:\-]\s*(.{1,200})$/im,
       certificateNumber: /^(?:certificate number|certificate no\.?)\s*[:\-]\s*(.{1,200})$/im,
       issueDate: /^(?:issue date|date of issue)\s*[:\-]\s*(.{1,80})$/im,
       expiryDate: /^(?:expiry date|expiration date|valid until)\s*[:\-]\s*(.{1,80})$/im
@@ -191,6 +284,28 @@ function buildDocumentVerificationReport({ docId, extension, size, verified, tip
       const match = text.match(pattern);
       if (match) extractedFields[field] = match[1].trim();
     }
+  }
+  const cv = normalizeCvData(profile.cvData || {});
+  const normalizeComparable = (value) => value.normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase();
+  const profileChecks = [];
+  if (extractedFields.name && cv.personal.name) {
+    profileChecks.push({
+      field: "Name",
+      status: normalizeComparable(extractedFields.name) === normalizeComparable(cv.personal.name) ? "consistent" : "potential_mismatch",
+      detail: normalizeComparable(extractedFields.name) === normalizeComparable(cv.personal.name)
+        ? "The labelled text matches the name entered in your CV profile."
+        : "The labelled text differs from the name entered in your CV profile. Review both values; this text-only check does not verify identity."
+    });
+  }
+  const education = cv.education.find((item) => item.institution);
+  if (docId === "academic" && extractedFields.institution && education) {
+    profileChecks.push({
+      field: "Institution",
+      status: normalizeComparable(extractedFields.institution) === normalizeComparable(education.institution) ? "consistent" : "potential_mismatch",
+      detail: normalizeComparable(extractedFields.institution) === normalizeComparable(education.institution)
+        ? "The labelled text matches the institution entered in your CV profile."
+        : "The labelled text differs from the institution entered in your CV profile. Review both values; this text-only check does not verify the document."
+    });
   }
 
   const requiredDocuments = REQUIRED_DOCUMENTS.filter((document) => !document.goal || document.goal === profile.goal);
@@ -209,10 +324,13 @@ function buildDocumentVerificationReport({ docId, extension, size, verified, tip
   const findings = [];
   if (!verified) findings.push("The local file check needs attention. This is a technical issue, not evidence that the document is false.");
   if (!supportedText) findings.push("OCR and field extraction were not performed for this file.");
+  if (profileChecks.some((check) => check.status === "potential_mismatch")) {
+    findings.push("A labelled text value differs from a value in your CV profile. Review it; no profile data was changed.");
+  }
   findings.push("Document authenticity has not been established. An authorised reviewer must inspect the file and use an official issuer channel where available.");
 
   return {
-    version: 1,
+    version: 2,
     generatedAt: Date.now(),
     status: "needs_human_review",
     riskLevel: "unassessed",
@@ -229,6 +347,7 @@ function buildDocumentVerificationReport({ docId, extension, size, verified, tip
       missing: requiredDocuments.filter((document) => !uploadedTypes.has(document.id)).map((document) => document.title)
     },
     extractedFields,
+    profileChecks,
     checks,
     findings,
     recommendation: "Review the document manually. Confirm certificates with the issuer through its official verification channel when available."
@@ -238,8 +357,9 @@ function buildDocumentVerificationReport({ docId, extension, size, verified, tip
 function buildAssessment(profile, documents) {
   const levelScores = { None: 15, A1: 30, A2: 45, B1: 65, B2: 82, C1: 94, C2: 100 };
   const required = REQUIRED_DOCUMENTS.filter((doc) => !doc.goal || doc.goal === profile.goal);
+  const documentsByType = new Map(documents.map((document) => [document.doc_id, document]));
   const documentScore = required.length
-    ? Math.round(documents.filter((doc) => ["approved", "verified"].includes(doc.review_status)).length / required.length * 100)
+    ? Math.round(required.filter((doc) => ["approved", "verified"].includes(documentsByType.get(doc.id)?.review_status)).length / required.length * 100)
     : 0;
   const academic = Math.min(100, Math.round(Number(profile.marks || 0) * 0.75 + (profile.education ? 25 : 0)));
   const language = Math.round(((levelScores[profile.german] || 0) * 0.65 + (levelScores[profile.english] || 0) * 0.35));
@@ -257,6 +377,313 @@ function buildAssessment(profile, documents) {
       { name: "Experience", value: experience, weight: 10 }
     ],
     note: "Indicative preview only; not an admission, employment or visa decision."
+  };
+}
+
+function buildPersonalRoadmap(profile, documents, applications, requestedRoute) {
+  const route = requestedRoute === "Bridge" || (!requestedRoute && profile.selectedRoute === "Bridge")
+    ? "Bridge"
+    : VALID_GOALS.has(requestedRoute) ? requestedRoute
+      : VALID_GOALS.has(profile.selectedRoute) ? profile.selectedRoute
+        : VALID_GOALS.has(profile.goal) ? profile.goal : "Study";
+  const routeForSteps = route === "Bridge" ? "Ausbildung" : route;
+  const definitions = {
+    Study: [
+      { id: "programmes", title: "Shortlist study programmes", offset: -9, target: "opportunities", detail: `Explore programmes related to ${profile.field || "your intended field"} and record official language and admission requirements.` },
+      { id: "language", title: "Check language requirements and plan a test", offset: -8, target: "documents", detail: "Compare the language requirements on each programme's official page with your current level and certificate." },
+      { id: "applications", title: "Submit and track study applications", offset: -7, target: "applications", detail: "Use each institution's official application instructions and enter its real deadline and checklist in Applications." },
+      { id: "admission", title: "Review admission decisions", offset: -5, target: "applications", detail: "Track decisions using provider updates; Journova does not receive admission decisions automatically." },
+      { id: "funding", title: "Prepare a funding plan", offset: -4, target: "profile", detail: "Use current official guidance to confirm the required funds and accepted proof for your circumstances." },
+      { id: "visa", title: "Check visa steps and book appointments", offset: -2, target: "opportunities", detail: "Confirm current student-visa documents, fees, appointment availability and processing guidance through official German channels." },
+      { id: "travel", title: "Finalize travel and arrival arrangements", offset: 0, target: "roadmap", detail: "Coordinate travel only after admission, visa and institution instructions are confirmed." }
+    ],
+    Ausbildung: [
+      { id: "occupation", title: "Choose a training occupation", offset: -9, target: "opportunities-ausbildung", detail: `Explore training occupations related to ${profile.field || "your interests"} and check each employer's official requirements.` },
+      { id: "language", title: "Build German for your target occupation", offset: -8, target: "documents", detail: `Your profile lists German as ${profile.german || "not provided"}. Confirm the required level with the employer and relevant authorities.` },
+      { id: "applications", title: "Apply to training employers", offset: -7, target: "applications", detail: "Record employer applications, official deadlines and requirements in Applications." },
+      { id: "contract", title: "Prepare for interviews and review the training contract", offset: -5, target: "applications", detail: "Track interview or offer updates yourself and verify contract terms directly with the employer." },
+      { id: "funding", title: "Plan finances and accommodation", offset: -4, target: "profile", detail: "Confirm living-cost, salary and accommodation details against the specific contract and official guidance." },
+      { id: "visa", title: "Check vocational-training visa steps", offset: -2, target: "opportunities-ausbildung", detail: "Verify current visa requirements and appointment instructions through official German channels." },
+      { id: "travel", title: "Finalize travel and arrival arrangements", offset: 0, target: "roadmap", detail: "Coordinate travel after the contract and required visa are confirmed." }
+    ],
+    Job: [
+      { id: "roles", title: "Identify suitable roles and employers", offset: -9, target: "opportunities-job", detail: `Focus on roles related to ${profile.field || "your field"} and check each employer's official requirements.` },
+      { id: "cv", title: "Prepare a role-specific CV and references", offset: -8, target: "cv", detail: "Complete your CV with accurate education, experience, skills and language information." },
+      { id: "recognition", title: "Check qualification recognition requirements", offset: -7, target: "documents", detail: "Use official recognition guidance for your qualification and intended occupation; requirements depend on the role." },
+      { id: "applications", title: "Apply and track employer responses", offset: -6, target: "applications", detail: "Record applications, deadlines and employer requirements in Applications." },
+      { id: "offer", title: "Review an offer and confirm employment terms", offset: -4, target: "applications", detail: "Check contract details directly with the employer; Journova cannot verify offers." },
+      { id: "funding", title: "Plan relocation costs", offset: -3, target: "profile", detail: "Estimate travel, housing and initial costs using your circumstances and current official guidance." },
+      { id: "visa", title: "Check work-visa steps and appointments", offset: -2, target: "opportunities-job", detail: "Confirm the applicable visa route, documents and appointment steps through official German channels." },
+      { id: "travel", title: "Finalize travel and arrival arrangements", offset: 0, target: "roadmap", detail: "Coordinate travel after employment and visa arrangements are confirmed." }
+    ]
+  };
+
+  const profileFields = [
+    ["goal", "journey goal"], ["field", "field of interest"], ["education", "education"],
+    ["marks", "marks or GPA"], ["english", "English level"], ["german", "German level"],
+    ["experience", "relevant experience"], ["age", "age"], ["funds", "available funds"],
+    ["startDate", "target start date"]
+  ];
+  const missingProfile = profileFields.filter(([key]) => profile[key] === undefined || profile[key] === null || profile[key] === "");
+  const documentsByType = new Map(documents.map((document) => [document.doc_id, document]));
+  const requiredDocuments = REQUIRED_DOCUMENTS.filter((document) => !document.goal || document.goal === routeForSteps);
+  const matchingApplications = applications.filter((application) => application.route === routeForSteps && application.status !== "Closed");
+  const hasReviewedLanguage = ["approved", "verified"].includes(documentsByType.get("language")?.review_status);
+  const cv = normalizeCvData(profile.cvData || {});
+  const cvHasContent = Boolean(
+    cv.personal.name || cv.summary || cv.education.some((item) => item.degree || item.institution) ||
+    cv.skills.some((item) => item.name) || cv.experience.some((item) => item.title || item.company) ||
+    documentsByType.has("cv")
+  );
+  const dateValue = typeof profile.startDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(profile.startDate)
+    ? new Date(`${profile.startDate}T12:00:00`)
+    : null;
+  const startDate = dateValue && !Number.isNaN(dateValue.getTime())
+    ? dateValue
+    : new Date(Date.now() + 10 * 30.4375 * 86400000);
+  const hasApplicantStartDate = Boolean(dateValue && !Number.isNaN(dateValue.getTime()));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const monthBeforeStart = (offset) => {
+    const date = new Date(startDate);
+    const originalDay = date.getDate();
+    date.setDate(1);
+    date.setMonth(date.getMonth() + offset);
+    const finalDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    date.setDate(Math.min(originalDay, finalDay));
+    return date;
+  };
+  const steps = [];
+  const addStep = (step) => {
+    const date = monthBeforeStart(step.offset ?? -10);
+    const due = new Date(date);
+    due.setHours(0, 0, 0, 0);
+    const overdue = !["complete", "waiting"].includes(step.status) && due < today;
+    steps.push({
+      ...step,
+      date: date.toISOString(),
+      overdue,
+      doNow: Boolean(step.doNow || overdue),
+      statusLabel: step.status === "complete" ? "Complete"
+        : step.status === "waiting" ? "Waiting for review"
+          : step.status === "in_progress" ? "In progress"
+            : overdue || step.status === "action_required" ? "Do now" : "Upcoming"
+    });
+  };
+
+  addStep({
+    id: "onboarding",
+    title: "Complete your AI onboarding profile",
+    detail: missingProfile.length
+      ? `Add ${missingProfile.slice(0, 3).map(([, label]) => label).join(", ")}${missingProfile.length > 3 ? ` and ${missingProfile.length - 3} more answer(s)` : ""}.`
+      : "Your onboarding answers are saved and ready to guide the rest of your plan.",
+    status: missingProfile.length ? "action_required" : "complete",
+    target: "intake",
+    source: "Applicant onboarding",
+    offset: -10
+  });
+
+  requiredDocuments.forEach((definition, index) => {
+    const document = documentsByType.get(definition.id);
+    const reviewStatus = document?.review_status || "";
+    const status = !document ? "action_required"
+      : ["needs_changes", "rejected"].includes(reviewStatus) ? "action_required"
+        : ["approved", "verified"].includes(reviewStatus) ? "complete" : "waiting";
+    const reviewNote = document?.review_note ? ` Reviewer note: ${document.review_note}` : "";
+    const detail = !document
+      ? `Upload your ${definition.title.toLowerCase()} to continue.${definition.id === "aps" ? " Confirm applicability and current instructions through APS's official sources." : ""}`
+      : status === "action_required"
+        ? `${reviewStatus === "rejected" ? "The reviewer did not accept this upload." : "The reviewer requested an update."}${reviewNote}`
+        : status === "waiting"
+          ? `${reviewStatus === "suspicious" ? "Additional human review is in progress." : "Uploaded and awaiting an admin's visual review."} Upload and visual review do not establish authenticity.`
+        : reviewStatus === "verified"
+          ? "A reviewer recorded issuer verification. Check the evidence and source in Documents; this record is not a guarantee of acceptance."
+          : "Admin visual review is complete; this is not issuer or authenticity verification.";
+    addStep({
+      id: `document-${definition.id}`,
+      title: `${status === "action_required" ? "Prepare" : "Document"}: ${definition.title}`,
+      detail,
+      status,
+      target: "documents",
+      source: "Applicant upload and admin review",
+      offset: -8 + Math.min(index, 2)
+    });
+  });
+
+  const routeSteps = definitions[routeForSteps];
+  routeSteps.forEach((definition) => {
+    let status = "upcoming";
+    let detail = definition.detail;
+    if (definition.id === "language") {
+      status = hasReviewedLanguage ? "complete" : documentsByType.has("language") ? "waiting" : "action_required";
+      if (!hasReviewedLanguage) detail = documentsByType.has("language")
+        ? "Your language certificate is uploaded, but its admin visual review is still pending. Check the provider's official level requirement."
+        : `${definition.detail} Upload a certificate when you have one; a self-reported level is not a certificate.`;
+    } else if (definition.id === "programmes" || definition.id === "occupation" || definition.id === "roles") {
+      status = matchingApplications.length ? "in_progress" : "action_required";
+      if (matchingApplications.length) detail = `You have ${matchingApplications.length} open ${routeForSteps.toLowerCase()} application(s) recorded. Keep provider names and requirements current.`;
+    } else if (definition.id === "cv") {
+      status = cvHasContent ? "in_progress" : "action_required";
+      if (cvHasContent) detail = "CV information or a saved CV exists. Review it for this role and ensure every statement is accurate.";
+    } else if (definition.id === "applications") {
+      const submitted = matchingApplications.some((application) => ["Applied", "Interview", "Offer"].includes(application.status));
+      status = submitted ? "complete" : matchingApplications.length ? "in_progress" : "action_required";
+      if (matchingApplications.length) detail = `${matchingApplications.length} open application(s) recorded; update their status and requirements from official provider messages.`;
+    } else if (definition.id === "admission" || definition.id === "contract" || definition.id === "offer") {
+      const offerReceived = matchingApplications.some((application) => application.status === "Offer");
+      const inInterview = matchingApplications.some((application) => application.status === "Interview");
+      status = offerReceived ? "complete" : inInterview ? "in_progress" : matchingApplications.length ? "waiting" : "upcoming";
+      if (offerReceived) detail = "An application is marked Offer in your workspace. Confirm the decision and terms directly with the institution or employer.";
+      else if (matchingApplications.length) detail = "Track replies in Applications. Journova does not receive decisions automatically.";
+    } else if (definition.id === "funding") {
+      status = Number(profile.funds) > 0 ? "in_progress" : "action_required";
+      if (Number(profile.funds) > 0) detail = `Your onboarding lists €${Number(profile.funds).toLocaleString("en")} as available; confirm actual evidence and current requirements using official sources.`;
+    } else if (definition.id === "recognition") {
+      status = documentsByType.has("academic") ? "in_progress" : "action_required";
+      if (documentsByType.has("academic")) detail = "Academic documents are uploaded. Check whether your specific occupation requires formal recognition using official sources.";
+    } else if (definition.id === "visa" || definition.id === "travel") {
+      status = "upcoming";
+    }
+    if (route === "Bridge" && definition.id === "language") {
+      detail = `Bridge route selected. ${detail}`;
+    }
+    addStep({
+      id: `route-${definition.id}`,
+      title: definition.title,
+      detail,
+      status,
+      target: definition.target,
+      source: "Route plan and applicant records",
+      offset: definition.offset
+    });
+  });
+
+  steps.sort((left, right) => new Date(left.date) - new Date(right.date));
+  const activeSteps = steps.filter((step) => !["complete", "waiting"].includes(step.status));
+  const prioritizedSteps = [
+    ...activeSteps.filter((step) => step.status === "action_required"),
+    ...activeSteps.filter((step) => step.status !== "action_required")
+  ];
+  prioritizedSteps.forEach((step, index) => {
+    if (index < 3) step.doNow = true;
+    if (step.doNow && step.statusLabel !== "Complete" && step.statusLabel !== "Waiting for review") step.statusLabel = "Do now";
+  });
+  const actions = prioritizedSteps.slice(0, 3).map(({ title, detail, target, id }) => ({ id, title, detail, target }));
+  const now = new Date();
+  return {
+    route,
+    startDate: startDate.toISOString(),
+    startDateSource: hasApplicantStartDate ? "applicant" : "estimated",
+    monthsLeft: Math.max(0, Math.ceil((startDate - now) / (30.4375 * 86400000))),
+    profile: { completed: profileFields.length - missingProfile.length, total: profileFields.length, missing: missingProfile.map(([, label]) => label) },
+    steps,
+    thisWeek: actions,
+    nextAction: actions[0] || null,
+    officialResources: OFFICIAL_RESOURCES[routeForSteps] || [],
+    note: "Personalized from your saved onboarding answers, uploaded documents, admin visual-review decisions and application statuses. German requirements, document authenticity, admission, employment, visa decisions and processing times must be confirmed with official sources. No external AI or official data feed is connected."
+  };
+}
+
+function buildQualificationProfile(profile, documents, reports) {
+  const cv = normalizeCvData(profile.cvData || {});
+  const profileFields = [
+    ["goal", "Journey goal"],
+    ["field", "Study or work field"],
+    ["education", "Education"],
+    ["marks", "Marks / GPA"],
+    ["english", "English level"],
+    ["german", "German level"],
+    ["experience", "Relevant experience"],
+    ["age", "Age"],
+    ["funds", "Available funds"],
+    ["startDate", "Target start date"]
+  ];
+  const isPresent = (value) => value !== undefined && value !== null && value !== "";
+  const facts = profileFields.map(([key, label]) => ({
+    key,
+    label,
+    value: isPresent(profile[key]) ? String(profile[key]) : "",
+    source: "Applicant profile"
+  }));
+  facts.push({
+    key: "name",
+    label: "Name",
+    value: cv.personal.name,
+    source: "CV profile"
+  });
+
+  const documentsByType = new Map(documents.map((document) => [document.doc_id, document]));
+  const reportByType = new Map(reports.map(({ docId, report }) => [docId, report]));
+  const linkedProfileFields = {
+    passport: ["name", "age"],
+    academic: ["education", "marks"],
+    cv: ["cvData", "skills", "projects", "experience"],
+    motivation: ["goal", "field"],
+    language: ["english", "german"],
+    aps: ["education"],
+    experience: ["experience"]
+  };
+  const requiredDocuments = REQUIRED_DOCUMENTS.filter((doc) => !doc.goal || doc.goal === profile.goal);
+  const qualificationDocuments = [...new Map([
+    ...requiredDocuments.map((doc) => [doc.id, doc]),
+    ...documents.map((document) => [document.doc_id, { id: document.doc_id, title: document.doc_id }])
+  ]).values()].map((definition) => {
+    const document = documentsByType.get(definition.id);
+    const report = reportByType.get(definition.id);
+    return {
+      id: definition.id,
+      title: definition.title,
+      required: requiredDocuments.some((doc) => doc.id === definition.id),
+      status: !document ? "missing" : document.review_status,
+      uploaded: Boolean(document),
+      name: document?.original_name || "",
+      uploadedAt: document?.created_at || null,
+      technicalCheck: document ? (document.verified ? "passed" : "needs_attention") : "not_run",
+      verificationStatus: document?.verification_status || "",
+      linkedProfileFields: linkedProfileFields[definition.id] || [],
+      extractedFields: report?.extractedFields || {},
+      profileChecks: report?.profileChecks || []
+    };
+  });
+  const presentProfileFields = profileFields.filter(([key]) => isPresent(profile[key]));
+  const assessment = buildAssessment(profile, documents);
+  const missingProfile = profileFields.filter(([key]) => !isPresent(profile[key])).map(([, label]) => label);
+  const missingDocuments = qualificationDocuments.filter((document) => document.required && !document.uploaded).map((document) => document.title);
+  const potentialMismatches = qualificationDocuments.flatMap((document) =>
+    document.profileChecks.filter((check) => check.status === "potential_mismatch").map((check) => ({
+      document: document.title,
+      field: check.field,
+      detail: check.detail
+    }))
+  );
+  const nextAction = potentialMismatches.length
+    ? "Review the possible document/profile mismatch. No profile information has been changed."
+    : missingProfile.length
+      ? `Complete your profile: ${missingProfile[0]}.`
+      : missingDocuments.length
+        ? `Upload the required document: ${missingDocuments[0]}.`
+        : qualificationDocuments.some((document) => document.required && document.status === "pending")
+          ? "Required documents are awaiting human review."
+          : "Review your qualification details and confirm them against original records.";
+
+  return {
+    facts,
+    education: cv.education.filter((item) => Object.values(item).some(Boolean)),
+    skills: cv.skills.filter((item) => item.name),
+    projects: cv.projects.filter((item) => Object.values(item).some(Boolean)),
+    experience: cv.experience.filter((item) => Object.values(item).some(Boolean)),
+    languages: cv.languages.filter((item) => Object.values(item).some(Boolean)),
+    certifications: cv.certifications.filter((item) => Object.values(item).some(Boolean)),
+    profileCompleteness: {
+      completed: presentProfileFields.length,
+      total: profileFields.length,
+      missing: missingProfile
+    },
+    documents: qualificationDocuments,
+    potentialMismatches,
+    assessment,
+    nextAction,
+    note: "This qualification view is derived from the applicant profile, CV and local file checks. Text extraction is limited to labelled TXT files; no OCR or issuer authenticity service is connected. Nothing is automatically verified or written back to your profile."
   };
 }
 
@@ -519,6 +946,7 @@ async function main() {
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       title TEXT NOT NULL,
       organization TEXT NOT NULL DEFAULT '',
+      location TEXT NOT NULL DEFAULT '',
       route TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'Preparing',
       deadline TEXT,
@@ -547,6 +975,7 @@ async function main() {
   if (!documentColumns.has("verification_source")) database.exec("ALTER TABLE documents ADD COLUMN verification_source TEXT NOT NULL DEFAULT ''");
   if (!documentColumns.has("verification_analyzed_at")) database.exec("ALTER TABLE documents ADD COLUMN verification_analyzed_at INTEGER");
   const applicationColumns = new Set(database.prepare("PRAGMA table_info(applications)").all().map((column) => column.name));
+  if (!applicationColumns.has("location")) database.exec("ALTER TABLE applications ADD COLUMN location TEXT NOT NULL DEFAULT ''");
   if (!applicationColumns.has("deadline")) database.exec("ALTER TABLE applications ADD COLUMN deadline TEXT");
   if (!applicationColumns.has("requirements")) database.exec("ALTER TABLE applications ADD COLUMN requirements TEXT NOT NULL DEFAULT '[]'");
 
@@ -614,7 +1043,7 @@ async function main() {
   }
   async function ensureDocumentReport(document, profile, uploadedDocuments) {
     const existing = parseJson(document.verification_report, null);
-    if (existing?.version === 1) return existing;
+    if (existing?.version === 2) return existing;
 
     const extension = path.extname(document.stored_name).toLowerCase();
     const filePath = path.join(UPLOAD_DIRECTORY, document.user_id, document.stored_name);
@@ -648,12 +1077,71 @@ async function main() {
   }
 
   app.get("/", (request, response) => response.sendFile(PUBLIC_FILE));
+  app.get([
+    "/login", "/register", "/dashboard", "/onboarding", "/profile", "/documents", "/documents/verification",
+    "/qualification", "/cv", "/opportunities", "/opportunities/matches", "/opportunities/study",
+    "/opportunities/ausbildung", "/opportunities/jobs", "/applications", "/journey", "/journey/ready",
+    "/roadmap", "/assistant", "/settings"
+  ], (request, response) => response.sendFile(PUBLIC_FILE));
   app.get("/cv-builder.js", (request, response) => response.sendFile(path.join(__dirname, "cv-builder.js")));
   app.get("/admin", (request, response) => response.sendFile(ADMIN_FILE));
   app.get("/api/health", (request, response) => response.json({
     status: "ok",
     localDevelopmentSession: process.env.NODE_ENV === "development"
   }));
+
+  app.get("/api/market-counts", requireUser, async (request, response) => {
+    response.json(await marketCountsSnapshot());
+  });
+
+  app.post("/api/guest/session", (request, response) => {
+    const existingToken = cookies(request).jn_session;
+    const existingUser = existingToken && userFromSession.get(hash(existingToken), Date.now());
+    if (existingUser) {
+      if (existingUser.email === "local-preview@journova.invalid") {
+        const now = Date.now();
+        const email = `guest-${crypto.randomUUID()}@guest.journova.invalid`;
+        const token = crypto.randomBytes(32).toString("base64url");
+        database.exec("BEGIN IMMEDIATE");
+        try {
+          database.prepare("UPDATE users SET email = ? WHERE id = ?").run(email, existingUser.id);
+          database.prepare("DELETE FROM sessions WHERE user_id = ?").run(existingUser.id);
+          database.prepare("INSERT INTO sessions(token_hash, user_id, expires_at) VALUES (?, ?, ?)")
+            .run(hash(token), existingUser.id, now + SESSION_TTL);
+          database.exec("COMMIT");
+        } catch (error) {
+          database.exec("ROLLBACK");
+          throw error;
+        }
+        setSessionCookie(response, token);
+        return response.json({
+          user: { email, guest: true },
+          guestSession: true,
+          expiresAt: now + SESSION_TTL
+        });
+      }
+      return response.json({
+        user: { email: existingUser.email, guest: existingUser.email.endsWith("@guest.journova.invalid") },
+        guestSession: existingUser.email.endsWith("@guest.journova.invalid")
+      });
+    }
+
+    const now = Date.now();
+    const id = crypto.randomUUID();
+    const email = `guest-${id}@guest.journova.invalid`;
+    database.prepare("INSERT INTO users(id, email, created_at) VALUES (?, ?, ?)").run(id, email, now);
+    database.prepare("INSERT INTO profiles(user_id, data, consent, updated_at) VALUES (?, '{}', 0, ?)").run(id, now);
+
+    const token = crypto.randomBytes(32).toString("base64url");
+    database.prepare("INSERT INTO sessions(token_hash, user_id, expires_at) VALUES (?, ?, ?)")
+      .run(hash(token), id, now + SESSION_TTL);
+    setSessionCookie(response, token);
+    response.status(201).json({
+      user: { email, guest: true },
+      guestSession: true,
+      expiresAt: now + SESSION_TTL
+    });
+  });
 
   app.post("/api/dev/session", (request, response) => {
     if (process.env.NODE_ENV !== "development") return response.status(404).json({ error: "Not found." });
@@ -730,6 +1218,10 @@ async function main() {
 
   app.get("/api/admin/me", requireAdmin, (request, response) => {
     response.json({ user: { email: request.user.email } });
+  });
+
+  app.get("/api/admin/market-counts", requireAdmin, async (request, response) => {
+    response.json(await marketCountsSnapshot());
   });
 
   app.get("/api/admin/documents", requireAdmin, async (request, response) => {
@@ -914,7 +1406,10 @@ async function main() {
   });
 
   app.get("/api/me", requireUser, (request, response) => {
-    response.json({ user: { email: request.user.email }, profile: profileFor(request.user.id) });
+    response.json({
+      user: { email: request.user.email, guest: request.user.email.endsWith("@guest.journova.invalid") },
+      profile: profileFor(request.user.id)
+    });
   });
 
   app.get("/api/profile", requireUser, (request, response) => {
@@ -979,8 +1474,8 @@ async function main() {
   app.get("/api/documents", requireUser, async (request, response) => {
     const storedDocuments = documentsFor(request.user.id);
     const currentProfile = profileFor(request.user.id);
-    await Promise.all(storedDocuments.map((document) => ensureDocumentReport(document, currentProfile, storedDocuments)));
-    const documents = storedDocuments.map((document) => ({
+    const reports = await Promise.all(storedDocuments.map((document) => ensureDocumentReport(document, currentProfile, storedDocuments)));
+    const documents = storedDocuments.map((document, index) => ({
       doc_id: document.doc_id,
       original_name: document.original_name,
       generated: document.original_name.startsWith("Journova CV - "),
@@ -996,6 +1491,8 @@ async function main() {
       reviewed_at: document.reviewed_at,
       verification_status: document.verification_status === "high_risk" ? "needs_human_review" : document.verification_status,
       verification_analyzed_at: document.verification_analyzed_at,
+      extracted_fields: reports[index].extractedFields || {},
+      profile_checks: reports[index].profileChecks || [],
       created_at: document.created_at
     }));
     response.json({ documents });
@@ -1066,7 +1563,7 @@ async function main() {
         verification_report=excluded.verification_report, verification_source='', verification_analyzed_at=excluded.verification_analyzed_at,
         created_at=excluded.created_at
     `).run(request.user.id, docId, request.file.filename, path.basename(request.file.originalname), request.file.mimetype, request.file.size, Number(verified), tip, report.status, report.riskLevel, JSON.stringify(report), analyzedAt, analyzedAt);
-    response.status(201).json({ document: { docId, name: path.basename(request.file.originalname), mime: request.file.mimetype, size: request.file.size, verified, tip, reviewStatus: "pending", reviewNote: "", verificationStatus: report.status, verificationAnalyzedAt: analyzedAt } });
+    response.status(201).json({ document: { docId, name: path.basename(request.file.originalname), mime: request.file.mimetype, size: request.file.size, verified, tip, reviewStatus: "pending", reviewNote: "", verificationStatus: report.status, verificationAnalyzedAt: analyzedAt, extractedFields: report.extractedFields, profileChecks: report.profileChecks } });
   });
 
   app.post("/api/documents/cv", requireUser, async (request, response) => {
@@ -1118,7 +1615,7 @@ async function main() {
         if (error.code !== "ENOENT") throw error;
       });
     }
-    response.status(201).json({ document: { docId: "cv", name: originalName, mime: "text/plain", size, verified: true, generated: true, tip, reviewStatus: "pending", verificationStatus: report.status } });
+    response.status(201).json({ document: { docId: "cv", name: originalName, mime: "text/plain", size, verified: true, generated: true, tip, reviewStatus: "pending", verificationStatus: report.status, extractedFields: report.extractedFields, profileChecks: report.profileChecks } });
   });
 
   app.get("/api/documents/:docId/file", requireUser, (request, response, next) => {
@@ -1140,6 +1637,16 @@ async function main() {
     response.json({ ok: true });
   });
 
+  app.get("/api/qualification", requireUser, async (request, response) => {
+    const currentProfile = { ...profileFor(request.user.id), email: request.user.email };
+    const storedDocuments = documentsFor(request.user.id);
+    const reports = await Promise.all(storedDocuments.map(async (document) => ({
+      docId: document.doc_id,
+      report: await ensureDocumentReport(document, currentProfile, storedDocuments)
+    })));
+    response.json({ qualification: buildQualificationProfile(currentProfile, storedDocuments, reports) });
+  });
+
   app.get("/api/assessment", requireUser, (request, response) => {
     const currentProfile = profileFor(request.user.id);
     response.json({ assessment: buildAssessment(currentProfile, documentsFor(request.user.id)) });
@@ -1148,37 +1655,55 @@ async function main() {
   app.get("/api/pathways", requireUser, (request, response) => {
     const currentProfile = profileFor(request.user.id);
     const assessment = buildAssessment(currentProfile, documentsFor(request.user.id));
-    response.json({ fits: buildPathways(currentProfile, assessment), resources: OFFICIAL_RESOURCES });
+    response.json({ fits: buildPathways(currentProfile, assessment) });
   });
 
   app.get("/api/roadmap", requireUser, (request, response) => {
     const currentProfile = profileFor(request.user.id);
-    const route = VALID_GOALS.has(request.query.route) ? request.query.route : currentProfile.goal || "Study";
-    const sequences = {
-      Study: [["Shortlist programmes", -10], ["Language test", -9], ["APS certificate", -8], ["Applications", -7], ["Admission", -5], ["Blocked account & finances", -4], ["Visa", -2], ["Fly to Germany", 0]],
-      Ausbildung: [["Choose an occupation", -10], ["Build German toward B1/B2", -9], ["Prepare documents", -8], ["Apply to employers", -7], ["Interview & contract", -5], ["Arrange finances and housing", -4], ["Visa", -2], ["Fly to Germany", 0]],
-      Job: [["Research target roles", -9], ["Prepare CV and references", -8], ["Check qualification recognition", -7], ["Apply and interview", -6], ["Secure job offer", -4], ["Arrange relocation finances", -3], ["Visa", -2], ["Fly to Germany", 0]]
-    };
-    const start = currentProfile.startDate ? new Date(`${currentProfile.startDate}T12:00:00`) : new Date(Date.now() + 10 * 30 * 86400000);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const steps = sequences[route].map(([title, offset]) => {
-      const date = new Date(start);
-      date.setMonth(date.getMonth() + offset);
-      return { title, date: date.toISOString(), doNow: date < today };
-    });
-    response.json({ route, startDate: start.toISOString(), monthsLeft: Math.max(0, Math.ceil((start - new Date()) / (30.4375 * 86400000))), steps });
+    const applications = database.prepare("SELECT id, title, organization, location, route, status, deadline, requirements, updated_at AS updatedAt FROM applications WHERE user_id = ? ORDER BY updated_at DESC")
+      .all(request.user.id)
+      .map((application) => ({ ...application, requirements: normalizeApplicationRequirements(parseJson(application.requirements, [])) || [] }));
+    const roadmap = buildPersonalRoadmap(
+      currentProfile,
+      documentsFor(request.user.id),
+      applications,
+      request.query.route
+    );
+    response.json({ roadmap });
   });
 
   app.get("/api/opportunities", requireUser, (request, response) => {
-    const route = VALID_GOALS.has(request.query.route) ? request.query.route : profileFor(request.user.id).goal || "Study";
-    response.json({ route, opportunities: [], officialResources: OFFICIAL_RESOURCES[route], message: "No live opportunity feed is connected. These links go to official search resources." });
+    const profile = { ...profileFor(request.user.id), email: request.user.email };
+    const documents = documentsFor(request.user.id);
+    const assessment = buildAssessment(profile, documents);
+    const pathwayScores = buildPathways(profile, assessment);
+    const route = VALID_GOALS.has(request.query.route) ? request.query.route : null;
+    const rows = database.prepare("SELECT id, title, organization, location, route, status, deadline, requirements, updated_at AS updatedAt FROM applications WHERE user_id = ? AND status != 'Closed' ORDER BY updated_at DESC")
+      .all(request.user.id);
+    const opportunities = rows
+      .filter((application) => !route || application.route === route)
+      .map((row) => {
+        const application = { ...row, requirements: normalizeApplicationRequirements(parseJson(row.requirements, [])) || [] };
+        const nextBestAction = buildApplicationNextAction(profile, documents, application);
+        const pathwayScore = pathwayScores[application.route] || 0;
+        return {
+          ...application,
+          nextBestAction,
+          pathwayScore,
+          matchPercentage: Math.round(pathwayScore * 0.65 + nextBestAction.readiness * 0.35)
+        };
+      });
+    response.json({
+      route: route || "all",
+      opportunities,
+      message: "Matches are calculated from applications you entered and your saved profile. Germany-wide market totals are available separately; individual live catalogue listings are not connected."
+    });
   });
 
   app.get("/api/applications", requireUser, (request, response) => {
     const profile = { ...profileFor(request.user.id), email: request.user.email };
     const documents = documentsFor(request.user.id);
-    const rows = database.prepare("SELECT id, title, organization, route, status, deadline, requirements, updated_at AS updatedAt FROM applications WHERE user_id = ? ORDER BY updated_at DESC").all(request.user.id);
+    const rows = database.prepare("SELECT id, title, organization, location, route, status, deadline, requirements, updated_at AS updatedAt FROM applications WHERE user_id = ? ORDER BY updated_at DESC").all(request.user.id);
     const applications = rows.map((row) => {
       const requirements = normalizeApplicationRequirements(parseJson(row.requirements, [])) || [];
       const application = { ...row, requirements };
@@ -1190,6 +1715,7 @@ async function main() {
   app.post("/api/applications", requireUser, (request, response) => {
     const title = typeof request.body?.title === "string" ? request.body.title.trim().slice(0, 160) : "";
     const organization = typeof request.body?.organization === "string" ? request.body.organization.trim().slice(0, 160) : "";
+    const location = typeof request.body?.location === "string" ? request.body.location.trim().slice(0, 160) : "";
     const route = request.body?.route;
     if (!title || !VALID_GOALS.has(route)) return response.status(400).json({ error: "Enter an application name and choose Study, Ausbildung or Job." });
     const deadlineInput = normalizeApplicationDeadline(request.body?.deadline);
@@ -1198,15 +1724,15 @@ async function main() {
     if (!requirements) return response.status(400).json({ error: "Add up to 30 application requirements, each with a label of 160 characters or fewer." });
     const id = crypto.randomUUID();
     const now = Date.now();
-    database.prepare("INSERT INTO applications(id, user_id, title, organization, route, status, deadline, requirements, updated_at) VALUES (?, ?, ?, ?, ?, 'Preparing', ?, ?, ?)")
-      .run(id, request.user.id, title, organization, route, deadlineInput.deadline, JSON.stringify(requirements), now);
-    response.status(201).json({ application: { id, title, organization, route, status: "Preparing", deadline: deadlineInput.deadline, requirements, updatedAt: now } });
+    database.prepare("INSERT INTO applications(id, user_id, title, organization, location, route, status, deadline, requirements, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'Preparing', ?, ?, ?)")
+      .run(id, request.user.id, title, organization, location, route, deadlineInput.deadline, JSON.stringify(requirements), now);
+    response.status(201).json({ application: { id, title, organization, location, route, status: "Preparing", deadline: deadlineInput.deadline, requirements, updatedAt: now } });
   });
 
   app.patch("/api/applications/:id", requireUser, (request, response) => {
-    const current = database.prepare("SELECT status, deadline, requirements FROM applications WHERE id = ? AND user_id = ?").get(request.params.id, request.user.id);
+    const current = database.prepare("SELECT status, deadline, requirements, location FROM applications WHERE id = ? AND user_id = ?").get(request.params.id, request.user.id);
     if (!current) return response.status(404).json({ error: "Application not found." });
-    const updates = { status: current.status, deadline: current.deadline, requirements: normalizeApplicationRequirements(parseJson(current.requirements, [])) || [] };
+    const updates = { status: current.status, deadline: current.deadline, requirements: normalizeApplicationRequirements(parseJson(current.requirements, [])) || [], location: current.location || "" };
     if (Object.hasOwn(request.body || {}, "status")) {
       if (!["Preparing", "Applied", "Interview", "Offer", "Closed"].includes(request.body.status)) return response.status(400).json({ error: "Choose a valid application status." });
       updates.status = request.body.status;
@@ -1221,8 +1747,12 @@ async function main() {
       if (!requirements) return response.status(400).json({ error: "Add up to 30 application requirements, each with a label of 160 characters or fewer." });
       updates.requirements = requirements;
     }
-    database.prepare("UPDATE applications SET status = ?, deadline = ?, requirements = ?, updated_at = ? WHERE id = ? AND user_id = ?")
-      .run(updates.status, updates.deadline, JSON.stringify(updates.requirements), Date.now(), request.params.id, request.user.id);
+    if (Object.hasOwn(request.body || {}, "location")) {
+      if (typeof request.body.location !== "string" || request.body.location.length > 160) return response.status(400).json({ error: "Enter a location of 160 characters or fewer." });
+      updates.location = request.body.location.trim();
+    }
+    database.prepare("UPDATE applications SET status = ?, deadline = ?, requirements = ?, location = ?, updated_at = ? WHERE id = ? AND user_id = ?")
+      .run(updates.status, updates.deadline, JSON.stringify(updates.requirements), updates.location, Date.now(), request.params.id, request.user.id);
     response.json({ ok: true, application: { id: request.params.id, ...updates } });
   });
 
@@ -1248,33 +1778,40 @@ async function main() {
     const currentProfile = profileFor(request.user.id);
     const documents = documentsFor(request.user.id);
     const assessment = buildAssessment(currentProfile, documents);
-    const applications = database.prepare("SELECT id, title, organization, route, status, updated_at AS updatedAt FROM applications WHERE user_id = ? ORDER BY updated_at DESC LIMIT 5").all(request.user.id);
+    const rows = database.prepare("SELECT id, title, organization, location, route, status, deadline, requirements, updated_at AS updatedAt FROM applications WHERE user_id = ? ORDER BY updated_at DESC LIMIT 5").all(request.user.id);
+    const applications = rows.map((row) => {
+      const requirements = normalizeApplicationRequirements(parseJson(row.requirements, [])) || [];
+      const application = { ...row, requirements };
+      return { ...application, nextBestAction: buildApplicationNextAction(currentProfile, documents, application) };
+    });
+    const latestHandoff = database.prepare("SELECT id, status, created_at AS createdAt FROM handoffs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1").get(request.user.id) || null;
     response.json({
       email: request.user.email,
       profile: currentProfile,
       assessment,
       documentCount: documents.length,
       verifiedCount: documents.filter((doc) => ["approved", "verified"].includes(doc.review_status)).length,
-      applications
+      applications,
+      latestHandoff
     });
+  });
 
-    app.post("/api/handoffs", requireUser, (request, response) => {
-      const currentProfile = profileFor(request.user.id);
-      if (!currentProfile.consent) return response.status(403).json({ error: "Consent is required before saving a counsellor handoff." });
-      const id = crypto.randomUUID();
-      const now = Date.now();
-      const payload = {
-        applicantEmail: request.user.email,
-        goal: currentProfile.goal || "",
-        selectedRoute: currentProfile.selectedRoute || "",
-        readiness: buildAssessment(currentProfile, documentsFor(request.user.id)),
-        profile: Object.fromEntries(JOURNEY_FIELDS.filter((field) => field !== "cvData" && currentProfile[field] !== undefined).map((field) => [field, currentProfile[field]])),
-        documents: documentsFor(request.user.id).map((doc) => ({ type: doc.doc_id, name: doc.original_name, verified: ["approved", "verified"].includes(doc.review_status), reviewStatus: doc.review_status }))
-      };
-      database.prepare("INSERT INTO handoffs(id, user_id, payload, status, created_at) VALUES (?, ?, ?, 'saved', ?)")
-        .run(id, request.user.id, JSON.stringify(payload), now);
-      response.status(201).json({ handoff: { id, status: "saved", createdAt: now }, message: "The handoff was saved to your account. No counsellor was notified." });
-    });
+  app.post("/api/handoffs", requireUser, (request, response) => {
+    const currentProfile = profileFor(request.user.id);
+    if (!currentProfile.consent) return response.status(403).json({ error: "Consent is required before saving a counsellor handoff." });
+    const id = crypto.randomUUID();
+    const now = Date.now();
+    const payload = {
+      applicantEmail: request.user.email,
+      goal: currentProfile.goal || "",
+      selectedRoute: currentProfile.selectedRoute || "",
+      readiness: buildAssessment(currentProfile, documentsFor(request.user.id)),
+      profile: Object.fromEntries(JOURNEY_FIELDS.filter((field) => field !== "cvData" && currentProfile[field] !== undefined).map((field) => [field, currentProfile[field]])),
+      documents: documentsFor(request.user.id).map((doc) => ({ type: doc.doc_id, name: doc.original_name, verified: ["approved", "verified"].includes(doc.review_status), reviewStatus: doc.review_status }))
+    };
+    database.prepare("INSERT INTO handoffs(id, user_id, payload, status, created_at) VALUES (?, ?, ?, 'saved', ?)")
+      .run(id, request.user.id, JSON.stringify(payload), now);
+    response.status(201).json({ handoff: { id, status: "saved", createdAt: now }, message: "The handoff was saved to your account. No counsellor was notified." });
   });
 
   app.post("/api/account/delete", requireUser, async (request, response) => {
