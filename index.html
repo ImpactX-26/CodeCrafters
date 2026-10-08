@@ -521,8 +521,17 @@
     .indicative-note { margin: 14px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
     .slide-in { animation: slide-in .28s ease both; }
     @keyframes slide-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .cv-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(390px, .9fr); gap: 18px; align-items: start; }
-    .cv-editor { padding: clamp(16px, 2.5vw, 24px); }
+    .cv-layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 18px; align-items: start; }
+    .cv-layout > * { min-width: 0; }
+    .cv-editor { padding: clamp(16px, 2.5vw, 24px); --text:#172033; --muted:#62718a; --line:#dbe3ed; --surface-raised:#f6f8fb; background:#fff; color:#172033; }
+    .cv-editor .answer-control { border-color:#dbe3ed; background:#fff; color:#172033; }
+    .cv-editor .small-button,.cv-editor .secondary-button { color:#172033; }
+    .cv-step-nav { position: sticky; top: 8px; z-index: 3; display: flex; gap: 7px; overflow-x: auto; padding: 7px; margin: -7px -7px 20px; border: 1px solid #e4e9f0; border-radius: 13px; background: rgba(255,255,255,.96); scrollbar-width: thin; }
+    .cv-step-nav button, .cv-step-nav a { min-height: 36px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; padding: 0 12px; border: 1px solid #dbe3ed; border-radius: 9px; background: #f7f9fc; color: #62718a; font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .18s, color .18s, border-color .18s; }
+    .cv-step-nav button:hover, .cv-step-nav a:hover { border-color: #9dff70; color: #172033; }
+    .cv-step-nav button[aria-current="step"] { border-color: #9dff70; background: #eaffdf; color: #20351a; }
+    .cv-step-nav button:focus-visible, .cv-step-nav a:focus-visible { outline: 3px solid rgba(74,133,42,.35); outline-offset: 2px; }
+    .cv-editor-section { scroll-margin-top: 64px; }
     .cv-editor-section { padding: 0 0 20px; margin: 0 0 20px; border-bottom: 1px solid var(--line); }
     .cv-editor-section:last-of-type { margin-bottom: 12px; }
     .cv-editor-heading, .cv-entry-heading, .cv-item-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -546,22 +555,46 @@
     .cv-target-panel { padding: 12px; margin-top: 10px; border-radius: 11px; background: var(--page); font-size: 11px; }
     .cv-target-panel p { margin: 6px 0 0; color: var(--muted); line-height: 1.5; }
     .cv-paper-wrap { overflow: auto; padding: 13px; border-radius: 15px; background: rgba(0,0,0,.18); }
-    .cv-paper { box-sizing: border-box; width: min(100%, 210mm); min-height: 297mm; padding: 18mm 17mm; margin: 0 auto; color: #172033; background: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.25); font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.38; overflow-wrap: anywhere; }
+    .cv-paper { box-sizing: border-box; width: min(100%, 210mm); min-height: 0; aspect-ratio: 210 / 297; padding: 18mm 17mm; margin: 0 auto; color: #172033; background: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.25); font-family: Arial, Helvetica, sans-serif; font-size: var(--cv-font-size,10pt); line-height: 1.38; overflow-wrap: anywhere; }
     .cv-paper h1 { max-width: none; margin: 0; color: #111827; font-size: 24pt; line-height: 1.12; letter-spacing: -.025em; }
     .cv-paper .cv-title { margin: 6px 0 0; color: #40536b; font-size: 11pt; font-weight: 600; }
     .cv-contact { margin: 9px 0 0; color: #465466; font-size: 8.5pt; line-height: 1.5; }
     .cv-section { margin-top: 17px; }
     .cv-section h2 { padding-bottom: 4px; margin: 0 0 7px; border-bottom: 1px solid #aeb8c5; color: #18263a; font-size: 10pt; font-weight: 700; letter-spacing: .055em; text-transform: uppercase; }
-    .cv-summary, .cv-item p { margin: 3px 0 0; color: #283548; font-size: 9pt; line-height: 1.42; }
+    .cv-summary, .cv-item p { margin: 3px 0 0; color: #283548; font-size: .9em; line-height: 1.42; }
     .cv-item { margin: 0 0 9px; break-inside: avoid; }
     .cv-item-head { align-items: baseline; font-size: 9pt; }
     .cv-date { flex: none; color: #526175; font-size: 8pt; }
-    .cv-skill, .cv-compact { margin: 3px 0; color: #283548; font-size: 9pt; }
+    .cv-skill, .cv-compact { margin: 3px 0; color: #283548; font-size: .9em; }
     .cv-links { color: #526175 !important; font-size: 8pt !important; }
-    .cv-template-modern .cv-header { padding-bottom: 10px; border-bottom: 3px solid #345b7e; }
+    .cv-template-modern .cv-header { position:relative; padding-bottom: 10px; border-bottom: 3px solid #345b7e; }
     .cv-template-modern .cv-section h2 { color: #345b7e; border-bottom-color: #8da3b7; }
-    .cv-template-european .cv-header { padding-bottom: 10px; border-bottom: 1px solid #708096; }
-    .cv-template-european .cv-section { margin-top: 14px; }
+    .cv-template-professional .cv-header { padding-bottom:10px; border-bottom:2px solid #40536b; }
+    .cv-template-professional .cv-section h2 { color:#263e58; }
+    .cv-template-student .cv-header { padding-bottom:10px; border-bottom:1px solid #8092a8; }
+    .cv-template-student .cv-section { margin-top:12px; }
+    .cv-template-student .cv-header h1 { font-size:21pt; }
+    .cv-photo { width:70px; height:70px; position:absolute; top:0; right:0; border-radius:50%; object-fit:cover; }
+    .cv-template-modern .cv-header:has(.cv-photo) { padding-right:82px; }
+    .cv-toolbar { --text:#172033; --muted:#62718a; --line:#dbe3ed; --surface-raised:#fff; color:#172033; background:#f7f9fc; }
+    .cv-toolbar .answer-control { color:#172033; background:#fff; }
+    .cv-preview-controls { justify-content:flex-end; margin:0 0 9px; }
+    .cv-section-controls { display:grid; gap:6px; }
+    .cv-section-control { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 8px; border:1px solid var(--line); border-radius:9px; }
+    .cv-section-control label { display:flex; align-items:center; gap:7px; font-size:11px; }
+    .cv-section-control input { accent-color:var(--accent); }
+    .cv-section-control .small-button { min-height:30px; padding:0 8px; }
+    .cv-section-control .small-button:disabled { opacity:.45; cursor:not-allowed; }
+    [data-cv-job-match] { margin-top:10px; font-size:11px; }
+    .cv-preview-column .cv-target-panel { color:#172033; background:#f7f9fc; }
+    .cv-preview-column .cv-analysis-panel { padding:12px; color:#172033; background:#fff; border:1px solid #dbe3ed; border-radius:11px; }
+    .cv-library { margin:16px 0; }
+    .cv-library-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px; }
+    .cv-library-card { display:grid; gap:10px; padding:14px; border:1px solid var(--line); border-radius:13px; background:var(--surface-raised); }
+    .cv-library-card strong { font-size:13px; }
+    .cv-library-card p { margin:5px 0 0; color:var(--muted); font-size:11px; }
+    .cv-library-card small { display:block; margin-top:5px; color:var(--muted); font-size:9px; }
+    .cv-library-card .small-button { min-height:34px; padding:0 9px; text-decoration:none; }
     .cv-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .cv-suggestion { padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; color: var(--text); background: var(--surface-raised); font-size: 10px; cursor: pointer; }
     .cv-analysis-panel { padding: 11px; margin-top: 10px; border-radius: 11px; background: var(--page); font-size: 10px; }
@@ -571,8 +604,13 @@
     .cv-match-terms { color: var(--muted); line-height: 1.5; }
     .cv-application-check { padding: 10px; margin-top: 10px; border: 1px solid var(--line); border-radius: 11px; background: rgba(120,140,170,.035); font-size: 10px; }
     .cv-export-actions { margin-top: 11px; }
-    @media (max-width: 1100px) {
+    @media (min-width: 901px) and (max-width: 1100px) {
+      .app-grid:has(.cv-layout) { grid-template-columns: 160px minmax(0, 1fr); }
+      .app-grid:has(.cv-layout) > .activity-panel { display: none; }
+    }
+    @media (max-width: 620px) {
       .cv-layout { grid-template-columns: 1fr; }
+      .cv-preview-column { order: -1; }
     }
 
     @media (max-width: 900px) {
@@ -663,7 +701,7 @@
       html, body { width: 210mm; min-height: 297mm; background: #fff !important; }
       body * { visibility: hidden !important; }
       .cv-paper, .cv-paper * { visibility: visible !important; }
-      .cv-paper { position: fixed; inset: 0 auto auto 0; width: 210mm !important; min-height: 297mm; padding: 18mm 17mm !important; margin: 0 !important; box-shadow: none !important; overflow: visible !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .cv-paper { position: fixed; inset: 0 auto auto 0; width: 210mm !important; min-height: 297mm; padding: 18mm 17mm !important; margin: 0 !important; box-shadow: none !important; overflow: visible !important; zoom:1 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .cv-paper-wrap { overflow: visible; padding: 0; background: #fff !important; }
     }
   </style>
@@ -868,6 +906,15 @@
     let assistantAnswer = "";
     let cvData = window.JournovaCvBuilder.normalize({});
     let cvTargetApplicationId = "";
+    let cvRecords = [];
+    let cvRecordId = "";
+    let cvRecordTitle = "";
+    let cvSaveQueue = Promise.resolve();
+    let cvSaveTimer;
+    let cvZoom = 1;
+    let cvPage = 1;
+    let cvAiConsent = false;
+    let cvAiPending = null;
     let saveQueue = Promise.resolve();
     let saveTimer;
     let documentRefreshPromise;
@@ -1559,14 +1606,16 @@
     }
     async function renderDashboard() {
       const data = await api("/api/dashboard");
-      const [matchingItems, marketCounts] = await Promise.all([loadMatchingPathways(), loadMarketCounts()]);
+      const [matchingItems, marketCounts, cvLibrary] = await Promise.all([loadMatchingPathways(), loadMarketCounts(), api("/api/cv")]);
+      cvRecords = cvLibrary.cvs;
       serverAssessment = data.assessment;
       serverHandoff = data.latestHandoff || null;
       const nextAction = dashboardNextAction(data);
       const applicantName = cvData.personal.name || profile.name || profile.email?.split("@")[0] || "there";
       renderActivity();
       const percent = completeness();
-      return `<div class="screen-head"><div><span class="kicker">Welcome back, ${escapeHtml(applicantName)}</span><h1>Your Germany journey</h1><p>Your applicant workspace, in one place.</p></div><button class="next-button" type="button" data-nav="intake">✦ Continue onboarding</button></div><section class="glass-card ready-panel"><span class="kicker">✦ Next best action</span><h3>${escapeHtml(nextAction.title)}</h3><p class="indicative-note">${escapeHtml(nextAction.reason)}</p><button class="next-button" type="button" data-nav="${escapeHtml(nextAction.target)}">Continue →</button></section><div class="route-grid" style="margin-top:14px"><article class="route-card"><span class="kicker">Profile</span><h3>${percent}% complete</h3><div class="doc-progress"><span style="width:${percent}%"></span></div><button class="small-button" type="button" data-nav="profile">Review profile →</button></article><article class="route-card"><span class="kicker">Readiness</span><h3>${data.assessment.score}/100</h3><p class="route-fit-label">${data.assessment.tier} · indicative only</p><button class="small-button" type="button" data-nav="assessment">See assessment →</button></article><article class="route-card"><span class="kicker">Documents</span><h3>${data.verifiedCount}/${data.documentCount} approved</h3><p class="route-fit-label">Admin visual review · not authenticity verification</p><button class="small-button" type="button" data-nav="documents">Open documents →</button></article></div>${renderMatchingPathways(matchingItems, { marketCounts })}<div class="ready-layout" style="margin-top:14px"><article class="glass-card ready-panel"><h3>Journey shortcuts</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary-button" type="button" data-nav="applications">Track applications</button><button class="secondary-button" type="button" data-nav="cv">Build your CV</button></div></article><article class="glass-card ready-panel"><h3>Current plan</h3><p style="color:var(--muted);font-size:11px">${escapeHtml(profile.goal || "Choose a goal during onboarding")} · ${escapeHtml(profile.startDate || "Start date not set")}</p><button class="secondary-button" type="button" data-nav="roadmap">View journey →</button></article></div><p class="indicative-note">${t("Indicative guidance only. Confirm requirements with official German authorities and institutions.")}</p>`;
+      const cvCards = cvLibrary.cvs.map((item) => `<article class="cv-library-card"><div><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.targetRole || "Role not selected yet")}</p><small>Updated ${escapeHtml(new Date(item.updatedAt).toLocaleDateString())}</small></div><div class="cv-actions"><button class="small-button" type="button" data-action="cv-card-open" data-id="${escapeHtml(item.id)}">Edit / preview</button><button class="small-button" type="button" data-action="cv-card-duplicate" data-id="${escapeHtml(item.id)}">Duplicate</button><a class="small-button" href="/api/cv/${encodeURIComponent(item.id)}/docx">DOCX</a><button class="small-button" type="button" data-action="cv-card-delete" data-id="${escapeHtml(item.id)}">Delete</button></div></article>`).join("");
+      return `<div class="screen-head"><div><span class="kicker">Welcome back, ${escapeHtml(applicantName)}</span><h1>Your Germany journey</h1><p>Your applicant workspace, in one place.</p></div><button class="next-button" type="button" data-nav="intake">✦ Continue onboarding</button></div><section class="glass-card ready-panel"><span class="kicker">✦ Next best action</span><h3>${escapeHtml(nextAction.title)}</h3><p class="indicative-note">${escapeHtml(nextAction.reason)}</p><button class="next-button" type="button" data-nav="${escapeHtml(nextAction.target)}">Continue →</button></section><section class="glass-card panel-pad cv-library"><div class="cv-editor-heading"><div><h2>My CVs</h2><p class="indicative-note">Create, edit, duplicate, preview and download role-specific CVs.</p></div><button class="next-button" type="button" data-action="cv-create-open">＋ Create CV</button></div>${cvCards ? `<div class="cv-library-grid">${cvCards}</div>` : `<p class="indicative-note">No CVs yet. Create one to start building your resume.</p>`}</section><div class="route-grid" style="margin-top:14px"><article class="route-card"><span class="kicker">Profile</span><h3>${percent}% complete</h3><div class="doc-progress"><span style="width:${percent}%"></span></div><button class="small-button" type="button" data-nav="profile">Review profile →</button></article><article class="route-card"><span class="kicker">Readiness</span><h3>${data.assessment.score}/100</h3><p class="route-fit-label">${data.assessment.tier} · indicative only</p><button class="small-button" type="button" data-nav="assessment">See assessment →</button></article><article class="route-card"><span class="kicker">Documents</span><h3>${data.verifiedCount}/${data.documentCount} approved</h3><p class="route-fit-label">Admin visual review · not authenticity verification</p><button class="small-button" type="button" data-nav="documents">Open documents →</button></article></div>${renderMatchingPathways(matchingItems, { marketCounts })}<div class="ready-layout" style="margin-top:14px"><article class="glass-card ready-panel"><h3>Journey shortcuts</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary-button" type="button" data-nav="applications">Track applications</button><button class="secondary-button" type="button" data-nav="cv">Build your CV</button></div></article><article class="glass-card ready-panel"><h3>Current plan</h3><p style="color:var(--muted);font-size:11px">${escapeHtml(profile.goal || "Choose a goal during onboarding")} · ${escapeHtml(profile.startDate || "Start date not set")}</p><button class="secondary-button" type="button" data-nav="roadmap">View journey →</button></article></div><p class="indicative-note">${t("Indicative guidance only. Confirm requirements with official German authorities and institutions.")}</p>`;
     }
     async function renderOpportunities(route) {
       const [matchingItems, marketCounts] = await Promise.all([loadMatchingPathways(), loadMarketCounts()]);
@@ -1599,8 +1648,123 @@
       }
       await renderScreen();
     }
-    function renderCv() {
+    async function loadCvRecords() {
+      const result = await api("/api/cv");
+      cvRecords = result.cvs;
+      if (!cvRecords.length) {
+        const initial = window.JournovaCvBuilder.normalize(profile.cvData || {});
+        if (!initial.personal.email && !guestMode) initial.personal.email = profile.email || "";
+        const created = await api("/api/cv", {
+          method: "POST",
+          body: JSON.stringify({ title: initial.target.title || `${initial.personal.name || "Untitled"} CV`, data: initial })
+        });
+        cvRecords = [created.cv];
+      }
+      let active = cvRecords.find((item) => item.id === cvRecordId);
+      if (!active) active = cvRecords[0];
+      cvRecordId = active.id;
+      cvRecordTitle = active.title;
+      cvData = window.JournovaCvBuilder.normalize(active.data);
+      profile.cvDocuments = cvRecords.map(({ id, title }) => ({ id, title }));
+      profile.activeCvId = cvRecordId;
+      profile.activeCvTitle = cvRecordTitle;
+    }
+    async function renderCv() {
+      await loadCvRecords();
       return window.JournovaCvBuilder.editor(cvData, profile, applications, cvTargetApplicationId);
+    }
+    function saveCvRecord(showConfirmation = false) {
+      if (!cvRecordId) return Promise.resolve();
+      window.clearTimeout(cvSaveTimer);
+      const id = cvRecordId;
+      const title = screenContent.querySelector("[data-cv-title]")?.value.trim() || cvRecordTitle || "Untitled CV";
+      cvSaveQueue = cvSaveQueue.then(async () => {
+        const result = await api(`/api/cv/${encodeURIComponent(id)}`, {
+          method: "PUT",
+          body: JSON.stringify({ title, data: cvData })
+        });
+        if (id === cvRecordId) {
+          cvRecordTitle = result.cv.title;
+          cvRecords = cvRecords.map((record) => record.id === id ? result.cv : record);
+          profile.cvDocuments = cvRecords.map(({ id: recordId, title: recordTitle }) => ({ id: recordId, title: recordTitle }));
+          profile.activeCvTitle = cvRecordTitle;
+        }
+        if (showConfirmation) announce("CV saved to your private CV library.");
+        return result.cv;
+      }).catch((error) => {
+        announce(`CV could not be saved: ${error.message}`);
+        throw error;
+      });
+      return cvSaveQueue;
+    }
+    function scheduleSaveCv() {
+      window.clearTimeout(cvSaveTimer);
+      cvSaveTimer = window.setTimeout(() => {
+        saveCvRecord().catch(() => {});
+      }, 500);
+    }
+    async function runCvAiAction(action, button) {
+      if (!cvAiConsent) {
+        announce("Review and accept the AI data-sharing notice before sending CV information to the configured provider.");
+        return;
+      }
+      button.disabled = true;
+      try {
+        if (action === "cv-summary") {
+          const result = await api("/api/ai/generate-summary", { method: "POST", body: JSON.stringify({ cv: cvData }) });
+          cvAiPending = { path: "summary", text: result.summary };
+          showCvAiSuggestion();
+          return;
+        }
+        const path = button.dataset.path || "";
+        const parts = path.split(".");
+        const source = parts.reduce((value, key) => value?.[key], cvData);
+        const section = ["projects", "experience", "skills"].includes(parts[0]) ? parts[0] : "summary";
+        const result = await api("/api/ai/improve-section", {
+          method: "POST",
+          body: JSON.stringify({ cv: cvData, section, text: source, style: screenContent.querySelector("[data-cv-ai-style]")?.value || "professional" })
+        });
+        cvAiPending = { path, text: result.text };
+        showCvAiSuggestion();
+      } catch (error) {
+        announce(`AI writing unavailable: ${error.message}`);
+      } finally {
+        if (button.isConnected) button.disabled = false;
+      }
+    }
+    function showCvAiSuggestion() {
+      const panel = screenContent.querySelector("[data-cv-analysis]");
+      if (!panel || !cvAiPending) return;
+      panel.hidden = false;
+      panel.innerHTML = `<strong>AI draft — review before applying</strong><p>Check every statement against your real experience. Nothing has been changed yet.</p><textarea class="answer-control cv-textarea" data-cv-ai-draft rows="5" maxlength="2000">${escapeHtml(cvAiPending.text)}</textarea><div class="cv-actions"><button class="small-button" type="button" data-action="cv-ai-apply">Use this wording</button><button class="small-button" type="button" data-action="cv-ai-discard">Keep my original</button></div>`;
+    }
+    async function showCvJobMatch(optimize = false) {
+      const output = screenContent.querySelector("[data-cv-job-match]");
+      if (!output) return;
+      output.textContent = optimize ? "Preparing truthful suggestions…" : "Comparing your CV with the job description…";
+      const endpoint = optimize ? "/api/ai/optimize-cv" : "/api/ai/match-job";
+      try {
+        const result = await api(endpoint, { method: "POST", body: JSON.stringify({ cv: cvData, description: cvData.target.description }) });
+        output.innerHTML = optimize
+          ? `<strong>Suggestions (no CV changes made)</strong><p>${escapeHtml(result.recommendations.join(" "))}</p><p><strong>Missing terms to review:</strong> ${escapeHtml(result.missingKeywords.join(", ") || "None")}</p>`
+          : `<strong>Job-description match · ${result.matchPercentage}%</strong><p><strong>Matching terms:</strong> ${escapeHtml(result.matchedSkills.join(", ") || "None yet")}</p><p><strong>Missing keywords:</strong> ${escapeHtml(result.missingKeywords.join(", ") || "None")}</p><ul>${result.recommendations.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="indicative-note">${escapeHtml(result.disclaimer)}</p>`;
+      } catch (error) {
+        output.textContent = `Job match could not be completed: ${error.message}`;
+      }
+    }
+    function updateCvPageLabel() {
+      const paper = screenContent.querySelector("[data-cv-preview-root]");
+      const wrap = screenContent.querySelector("[data-cv-paper-wrap]");
+      if (!paper || !wrap) return;
+      paper.style.zoom = String(cvZoom);
+      const pageHeight = paper.offsetWidth * (297 / 210) * cvZoom;
+      const pageCount = Math.max(1, Math.ceil(paper.scrollHeight * cvZoom / pageHeight));
+      cvPage = Math.max(1, Math.min(pageCount, cvPage));
+      wrap.scrollTo({ top: (cvPage - 1) * pageHeight, behavior: "smooth" });
+      const zoomLabel = screenContent.querySelector("[data-cv-zoom-label]");
+      const pageLabel = screenContent.querySelector("[data-cv-page-label]");
+      if (zoomLabel) zoomLabel.textContent = `${Math.round(cvZoom * 100)}%`;
+      if (pageLabel) pageLabel.textContent = `Page ${cvPage} / ${pageCount}`;
     }
     function renderAssistant() {
       return `<div class="screen-head"><div><span class="kicker">Tools</span><h1>AI Assistant</h1><p>Ask about your profile, document checklist, language or next steps.</p></div></div><section class="glass-card chat-card"><div class="message-preview" style="margin-bottom:14px">I can help explain your profile checklist and official resources. For legal or eligibility decisions, verify details with official German sources.</div><label class="field-label" for="assistantQuestion">Your question</label><textarea class="answer-control" id="assistantQuestion" rows="3" maxlength="1000" placeholder="What should I prepare for my route?"></textarea><div class="bottom-actions"><button class="next-button" type="button" data-action="ask-assistant">Ask</button></div>${assistantAnswer ? `<div class="glass-card panel-pad" style="margin-top:16px"><strong style="font-size:11px">Journova Assistant</strong><p style="font-size:12px;line-height:1.6">${escapeHtml(assistantAnswer)}</p><p class="indicative-note">Profile-aware guidance rules · no external AI service connected</p></div>` : ""}</section>`;
@@ -1663,6 +1827,7 @@
         decorateApplicationsWithCv();
         decorateApplicationLocations();
       }
+      if (currentScreen === "cv") requestAnimationFrame(updateCvPageLabel);
       if (currentScreen === "documents") decorateGeneratedCvDocument();
       renderTracker();
       renderActivity();
@@ -1909,9 +2074,21 @@
       link.click();
       URL.revokeObjectURL(url);
     }
-    function showCvAnalysis(mode) {
+    async function showCvAnalysis(mode) {
       const panel = screenContent.querySelector("[data-cv-analysis]");
       if (!panel) return;
+      if (mode === "ats") {
+        panel.hidden = false;
+        panel.textContent = "Analyzing role keywords and CV structure…";
+        try {
+          const result = await api("/api/ai/analyze-ats", { method: "POST", body: JSON.stringify({ cv: cvData }) });
+          panel.innerHTML = `<strong>ATS readiness estimate · ${result.score}/100</strong><p>${result.keywordScore === null ? "Add a job description for a keyword coverage result." : `Keyword coverage: ${result.keywordScore}%`}</p><p><strong>Matched:</strong> ${escapeHtml(result.matched.join(", ") || "None yet")}</p><p><strong>Not found in your CV:</strong> ${escapeHtml(result.missing.join(", ") || "No major terms found")}</p><ul>${result.recommendations.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="indicative-note">${escapeHtml(result.disclaimer)}</p>`;
+        } catch (error) {
+          panel.textContent = `Analysis unavailable: ${error.message}`;
+        }
+        return;
+      }
+      panel.dataset.mode = "complete";
       const result = window.JournovaCvBuilder.analysis(cvData, profile);
       panel.hidden = false;
       const checks = result.checks.map(([label, complete]) =>
@@ -1920,30 +2097,36 @@
       const recommendations = result.recommendations.length
         ? result.recommendations.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
         : "<li>Core sections are present. Review every fact before applying.</li>";
-      const ats = result.atsScore === null
-        ? `<p class="indicative-note">Add a target title or role description to compare keywords. ${result.atsNotes.map(escapeHtml).join(" ")}</p>`
-        : `<p><strong>ATS keyword coverage: ${result.atsScore}%</strong></p><p class="cv-match-terms">Matched: ${escapeHtml(result.matched.join(", ") || "none")}<br>Not found in your CV: ${escapeHtml(result.missing.join(", ") || "none")}</p><p class="indicative-note">${result.atsNotes.map(escapeHtml).join(" ")}</p>`;
-      panel.innerHTML = mode === "ats"
-        ? `<strong>ATS compatibility · keyword comparison</strong>${ats}`
-        : `<strong>CV completeness · ${result.score}/100</strong>${checks}<ul>${recommendations}</ul><p class="indicative-note">This local checklist is not an eligibility or hiring score. No external AI service is connected.</p>`;
+      panel.innerHTML = `<strong>CV completeness · ${result.score}/100</strong>${checks}<ul>${recommendations}</ul><p class="indicative-note">This local checklist is not an eligibility or hiring score. No external AI service is connected.</p>`;
     }
     function cvHasContent() {
       return Boolean(cvData.personal.name || cvData.personal.title || cvData.summary ||
         cvData.education.some((item) => Object.values(item).some(Boolean)) ||
         cvData.skills.some((item) => item.name) ||
         cvData.projects.some((item) => Object.values(item).some(Boolean)) ||
-        cvData.experience.some((item) => Object.values(item).some(Boolean)));
+        cvData.experience.some((item) => Object.values(item).some(Boolean)) ||
+        Object.values(cvData.extras).some((items) => items.some((item) => Object.values(item).some(Boolean))));
     }
-    async function saveCv() {
+    async function saveCv(addToDocuments = false) {
       if (!cvHasContent()) {
         announce("Add some CV details before saving.");
         return;
       }
-      const existingCv = files.get("cv");
       window.clearTimeout(saveTimer);
+      window.clearTimeout(cvSaveTimer);
       const button = screenContent.querySelector('[data-action="cv-save"]');
       if (button) button.disabled = true;
       try {
+        await saveCvRecord();
+        if (!addToDocuments) {
+          announce("CV saved to your private CV library.");
+          return;
+        }
+        const existingCv = files.get("cv");
+        if (existingCv && !window.confirm("A CV file already exists in Documents. Replace that CV document with this saved version?")) {
+          announce("CV saved to your library. The existing Documents file was left unchanged.");
+          return;
+        }
         await saveQueue;
         profile.cvData = cvData;
         const saved = await api("/api/profile", {
@@ -1952,15 +2135,10 @@
         });
         profile = { ...profile, ...saved.profile, email: profile.email };
         cvData = window.JournovaCvBuilder.normalize(saved.profile.cvData);
-        if (existingCv && !window.confirm("A CV file already exists in Documents. Replace that CV document with this saved version?")) {
-          announce("CV saved to your profile. The existing Documents file was left unchanged.");
-          renderScreen();
-          return;
-        }
         const result = await api("/api/documents/cv", { method: "POST", body: "{}" });
         await refreshApplicantDocuments();
         renderScreen();
-        announce(result.document.generated ? "CV saved to your profile and Documents." : "CV saved.");
+        announce(result.document.generated ? "CV saved to your library and Documents." : "CV saved.");
       } catch (error) {
         announce(`CV could not be saved: ${error.message}`);
       } finally {
@@ -2026,6 +2204,7 @@
     screenContent.addEventListener("click", async (event) => {
       const navButton = event.target.closest("[data-nav]");
       if (navButton) {
+        if (navButton.dataset.cvId) cvRecordId = navButton.dataset.cvId;
         navigateTo(navButton.dataset.nav);
         return;
       }
@@ -2182,41 +2361,141 @@
           announce(error.message);
         }
       } else if (action === "cv-add") {
-        const entry = window.JournovaCvBuilder.createEntry(button.dataset.section);
-        if (!entry || !Array.isArray(cvData[button.dataset.section])) return;
-        cvData[button.dataset.section].push(entry);
+        const section = button.dataset.section;
+        const entryLabel = ({ achievements: "award", skills: "skill", volunteering: "volunteer role", leadership: "leadership role", publications: "publication", interests: "interest" })[section] || section.replace(/s$/, "");
+        const entry = window.JournovaCvBuilder.createEntry(section);
+        const entries = cvData.extras[section] || cvData[section];
+        if (!entry || !Array.isArray(entries)) {
+          announce("This CV section could not be updated. Please reload the builder and try again.");
+          return;
+        }
+        entries.push(entry);
         profile.cvData = cvData;
-        renderScreen();
+        try {
+          await saveCvRecord();
+          await renderScreen();
+          const addedEntries = screenContent.querySelectorAll(`[data-cv-add-entry="${CSS.escape(section)}"]`);
+          const addedEntry = addedEntries[addedEntries.length - 1];
+          if (addedEntry) {
+            const top = window.scrollY + addedEntry.getBoundingClientRect().top - window.innerHeight * 0.28;
+            window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+          }
+          addedEntry?.querySelector("input,textarea,select")?.focus({ preventScroll: true });
+          announce(`New ${entryLabel} added. Fill in its details.`);
+        } catch {
+          return;
+        }
+      } else if (action === "cv-step") {
+        const section = screenContent.querySelectorAll(".cv-editor-section")[Number(button.dataset.index)];
+        screenContent.querySelectorAll(".cv-step-nav button[data-action='cv-step']").forEach((stepButton) => stepButton.removeAttribute("aria-current"));
+        button.setAttribute("aria-current", "step");
+        section?.scrollIntoView({ behavior: "smooth", block: "start" });
+        section?.querySelector("input,textarea,select,button")?.focus({ preventScroll: true });
       } else if (action === "cv-remove") {
-        const entries = cvData[button.dataset.section];
+        const entries = cvData.extras[button.dataset.section] || cvData[button.dataset.section];
         const index = Number(button.dataset.index);
         if (!Array.isArray(entries) || !Number.isInteger(index) || index < 0 || index >= entries.length) return;
         entries.splice(index, 1);
         profile.cvData = cvData;
         scheduleSaveState();
-        renderScreen();
+        try {
+          await saveCvRecord();
+          await renderScreen();
+        } catch {
+          return;
+        }
       } else if (action === "cv-summary") {
-        const summary = window.JournovaCvBuilder.generateSummary(cvData, profile);
-        if (!summary) {
-          announce("Add education, a field, a project or skills before generating a factual summary.");
-          return;
-        }
-        cvData.summary = summary;
-        profile.cvData = cvData;
-        scheduleSaveState();
-        renderScreen();
-        announce("Draft summary generated from your details. Review and edit it.");
+        await runCvAiAction(action, button);
       } else if (action === "cv-improve") {
-        const improved = window.JournovaCvBuilder.improveText(button.dataset.path.split(".").reduce((value, key) => value?.[key], cvData));
-        if (!improved) {
-          announce("Add a description before using the writing assist.");
-          return;
+        await runCvAiAction(action, button);
+      } else if (action === "cv-create" || action === "cv-create-open") {
+        try {
+          await saveCvRecord();
+          const data = window.JournovaCvBuilder.normalize({ personal: { name: cvData.personal.name, email: guestMode ? cvData.personal.email : profile.email || cvData.personal.email }, target: { title: "", type: "Job" } });
+          const result = await api("/api/cv", { method: "POST", body: JSON.stringify({ title: "New CV", data }) });
+          cvRecords.unshift(result.cv);
+          cvRecordId = result.cv.id;
+          cvRecordTitle = result.cv.title;
+          cvData = window.JournovaCvBuilder.normalize(result.cv.data);
+          if (action === "cv-create-open") navigateTo("cv");
+          else renderScreen();
+        } catch (error) {
+          announce(`Could not create a CV: ${error.message}`);
         }
-        window.JournovaCvBuilder.setPath(cvData, button.dataset.path, improved);
-        profile.cvData = cvData;
-        scheduleSaveState();
+      } else if (action === "cv-duplicate") {
+        try {
+          await saveCvRecord();
+          const result = await api(`/api/cv/${encodeURIComponent(cvRecordId)}/duplicate`, { method: "POST", body: "{}" });
+          cvRecords.unshift(result.cv);
+          cvRecordId = result.cv.id;
+          cvRecordTitle = result.cv.title;
+          cvData = window.JournovaCvBuilder.normalize(result.cv.data);
+          renderScreen();
+          announce("CV duplicated. Edit the copy for another role.");
+        } catch (error) {
+          announce(`Could not duplicate the CV: ${error.message}`);
+        }
+      } else if (action === "cv-card-open") {
+        cvRecordId = button.dataset.id;
+        navigateTo("cv");
+      } else if (action === "cv-card-duplicate") {
+        try {
+          const result = await api(`/api/cv/${encodeURIComponent(button.dataset.id)}/duplicate`, { method: "POST", body: "{}" });
+          cvRecordId = result.cv.id;
+          if (currentScreen === "dashboard") {
+            await renderScreen();
+            announce("CV duplicated.");
+          }
+        } catch (error) {
+          announce(`Could not duplicate the CV: ${error.message}`);
+        }
+      } else if (action === "cv-card-delete") {
+        const record = cvRecords.find((item) => item.id === button.dataset.id);
+        if (!record || !window.confirm(`Delete “${record.title}”? This cannot be undone.`)) return;
+        try {
+          if (cvRecords.length === 1) {
+            profile.cvData = window.JournovaCvBuilder.normalize({});
+            await saveState();
+          }
+          await api(`/api/cv/${encodeURIComponent(record.id)}`, { method: "DELETE" });
+          if (cvRecordId === record.id) cvRecordId = "";
+          await renderScreen();
+          announce("CV deleted.");
+        } catch (error) {
+          announce(`Could not delete the CV: ${error.message}`);
+        }
+      } else if (action === "cv-delete") {
+        if (!window.confirm(`Delete “${cvRecordTitle}”? This cannot be undone.`)) return;
+        try {
+          window.clearTimeout(cvSaveTimer);
+          const deletedId = cvRecordId;
+          if (cvRecords.length === 1) {
+            profile.cvData = window.JournovaCvBuilder.normalize({});
+            await saveState();
+          }
+          await api(`/api/cv/${encodeURIComponent(deletedId)}`, { method: "DELETE" });
+          cvRecordId = "";
+          cvRecords = cvRecords.filter((record) => record.id !== deletedId);
+          await renderScreen();
+          announce("CV deleted.");
+        } catch (error) {
+          announce(`Could not delete the CV: ${error.message}`);
+        }
+      } else if (action === "cv-section-move") {
+        const index = cvData.sectionOrder.indexOf(button.dataset.section);
+        const target = index + Number(button.dataset.direction);
+        if (index < 0 || target < 0 || target >= cvData.sectionOrder.length) return;
+        [cvData.sectionOrder[index], cvData.sectionOrder[target]] = [cvData.sectionOrder[target], cvData.sectionOrder[index]];
+        scheduleSaveCv();
         renderScreen();
-        announce("Wording was tidied without adding facts. Review it before use.");
+      } else if (action === "cv-zoom") {
+        cvZoom = Math.max(0.6, Math.min(1.4, cvZoom + Number(button.dataset.step)));
+        updateCvPageLabel();
+      } else if (action === "cv-page") {
+        cvPage += Number(button.dataset.step);
+        updateCvPageLabel();
+      } else if (action === "cv-match" || action === "cv-optimize") {
+        await showCvJobMatch(action === "cv-optimize");
       } else if (action === "cv-suggest") {
         const suggestions = window.JournovaCvBuilder.skillSuggestions(cvData, profile);
         const container = screenContent.querySelector("[data-cv-suggestions]");
@@ -2230,13 +2509,14 @@
           cvData.skills.push({ category: button.dataset.category, name: button.dataset.skill });
           profile.cvData = cvData;
           scheduleSaveState();
+          scheduleSaveCv();
         }
         renderScreen();
       } else if (action === "cv-analyze") {
         showCvAnalysis("complete");
       } else if (action === "cv-ats") {
         showCvAnalysis("ats");
-      } else if (action === "cv-optimize") {
+      } else if (action === "cv-legacy-optimize") {
         const application = applications.find((item) => item.id === cvTargetApplicationId);
         const type = button.dataset.targetType;
         cvData.target.type = type;
@@ -2251,6 +2531,32 @@
         announce(`CV analysis is now focused on ${type}. Add only information that is true for you.`);
       } else if (action === "cv-save") {
         await saveCv();
+      } else if (action === "cv-save-document") {
+        await saveCv(true);
+      } else if (action === "cv-remove-photo") {
+        cvData.personal.photo = "";
+        scheduleSaveCv();
+        renderScreen();
+      } else if (action === "cv-ai-apply") {
+        const draft = screenContent.querySelector("[data-cv-ai-draft]")?.value.trim();
+        if (!cvAiPending || !draft) {
+          announce("Review the proposed wording before applying it.");
+          return;
+        }
+        window.JournovaCvBuilder.setPath(cvData, cvAiPending.path, draft);
+        cvAiPending = null;
+        profile.cvData = cvData;
+        scheduleSaveState();
+        scheduleSaveCv();
+        renderScreen();
+        announce("Your reviewed wording was saved. Confirm it remains accurate.");
+      } else if (action === "cv-ai-discard") {
+        cvAiPending = null;
+        const panel = screenContent.querySelector("[data-cv-analysis]");
+        if (panel) {
+          panel.hidden = true;
+          panel.replaceChildren();
+        }
       } else if (action === "cv-download-text") {
         downloadCvText();
       } else if (action === "cv-pdf" || action === "cv-print") {
@@ -2292,23 +2598,96 @@
       const target = event.target;
       if (target.matches("#questionAnswer")) updateQuestionValue(target.value, false);
       else if (target.matches("[data-whatif]")) whatIfScore();
+      else if (target.matches("[data-cv-title]")) {
+        cvRecordTitle = target.value.slice(0, 120);
+        const selected = screenContent.querySelector("[data-cv-select] option:checked");
+        if (selected) selected.textContent = cvRecordTitle || "Untitled CV";
+        scheduleSaveCv();
+      }
       else if (target.matches("[data-cv-path]")) {
-        const value = target.type === "checkbox" ? target.checked : target.value;
+        const value = target.type === "checkbox" ? target.checked : target.type === "range" ? Number(target.value) : target.value;
         window.JournovaCvBuilder.setPath(cvData, target.dataset.cvPath, value);
         profile.cvData = { ...cvData };
         scheduleSaveState();
+        scheduleSaveCv();
         const preview = screenContent.querySelector("[data-cv-preview-root]");
-        if (preview) preview.innerHTML = window.JournovaCvBuilder.renderPreview(cvData, profile);
+        if (preview) {
+          preview.innerHTML = window.JournovaCvBuilder.renderPreview(cvData, profile);
+          preview.className = `cv-paper cv-template-${cvData.template}`;
+          preview.style.setProperty("--cv-font-size", `${cvData.fontSize}pt`);
+          updateCvPageLabel();
+        }
         const match = screenContent.querySelector("[data-cv-match]");
         if (match) match.textContent = window.JournovaCvBuilder.matchSummary(cvData);
         const analysis = screenContent.querySelector("[data-cv-analysis]");
-        if (analysis && !analysis.hidden) showCvAnalysis(analysis.textContent.includes("ATS compatibility") ? "ats" : "complete");
+        if (analysis && !analysis.hidden) showCvAnalysis(analysis.dataset.mode || "complete");
       } else if (target.matches("[data-match-threshold]")) updateMatchFilter(target.value);
     });
     screenContent.addEventListener("change", async (event) => {
       const input = event.target;
       if (input.matches("[data-upload]") && input.files && input.files[0]) await uploadFile(input.dataset.upload, input.files[0]);
       else if (input.matches("#questionAnswer")) updateQuestionValue(input.value);
+      else if (input.matches("[data-cv-photo]") && input.files?.[0]) {
+        const file = input.files[0];
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+          announce("Choose a JPG, PNG or WebP image smaller than 5 MB.");
+          input.value = "";
+          return;
+        }
+        const source = URL.createObjectURL(file);
+        try {
+          const image = new Image();
+          await new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = () => reject(new Error("The selected image could not be read."));
+            image.src = source;
+          });
+          const scale = Math.min(1, 480 / Math.max(image.naturalWidth, image.naturalHeight));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+          let photo = canvas.toDataURL("image/jpeg", 0.72);
+          if (photo.length > 95000) photo = canvas.toDataURL("image/jpeg", 0.48);
+          if (photo.length > 99000) throw new Error("That image is too detailed to store. Choose a smaller photo.");
+          cvData.personal.photo = photo;
+          scheduleSaveCv();
+          renderScreen();
+          announce("Profile photo saved. It appears only in the Modern template.");
+        } catch (error) {
+          announce(error.message);
+        } finally {
+          URL.revokeObjectURL(source);
+        }
+      }
+      else if (input.matches("[data-cv-select]")) {
+        if (input.value === cvRecordId) return;
+        try {
+          window.clearTimeout(cvSaveTimer);
+          await saveCvRecord();
+          const result = await api(`/api/cv/${encodeURIComponent(input.value)}`);
+          cvRecordId = result.cv.id;
+          cvRecordTitle = result.cv.title;
+          cvData = window.JournovaCvBuilder.normalize(result.cv.data);
+          renderScreen();
+        } catch (error) {
+          announce(`Could not open that CV: ${error.message}`);
+        }
+      }
+      else if (input.matches("[data-cv-section-visible]")) {
+        const section = input.dataset.cvSectionVisible;
+        cvData.hiddenSections = input.checked
+          ? cvData.hiddenSections.filter((item) => item !== section)
+          : [...new Set([...cvData.hiddenSections, section])];
+        scheduleSaveCv();
+        const preview = screenContent.querySelector("[data-cv-preview-root]");
+        if (preview) preview.innerHTML = window.JournovaCvBuilder.renderPreview(cvData, profile);
+        updateCvPageLabel();
+      }
+      else if (input.matches("[data-cv-ai-consent]")) {
+        cvAiConsent = input.checked;
+        profile.cvAiConsent = cvAiConsent;
+      }
       else if (input.matches("[data-cv-application]")) {
         cvTargetApplicationId = input.value;
         const application = applications.find((item) => item.id === cvTargetApplicationId);
@@ -2319,6 +2698,7 @@
           profile.cvData = cvData;
         }
         scheduleSaveState();
+        scheduleSaveCv();
         renderScreen();
       }
       else if (input.matches("[data-consent]")) {

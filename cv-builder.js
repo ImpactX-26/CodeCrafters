@@ -1,15 +1,21 @@
 (() => {
   "use strict";
 
-  const categories = ["Programming Languages", "AI / ML", "Web Development", "Database", "Tools", "Other"];
+  const categories = ["Programming Languages", "Frameworks", "Tools", "Databases", "AI / ML", "Soft Skills", "Web Development", "Other"];
   const sections = {
-    education: { title: "Education", fields: [["degree", "Degree"], ["institution", "Institution"], ["location", "Location"], ["startDate", "Start date"], ["endDate", "End date"], ["grade", "Grade / CGPA"], ["description", "Description", "textarea"]] },
-    projects: { title: "Projects", fields: [["name", "Project name"], ["description", "Description", "textarea"], ["technologies", "Technologies"], ["github", "GitHub link"], ["live", "Live demo link"]] },
-    experience: { title: "Experience", fields: [["title", "Job / internship title"], ["company", "Company"], ["location", "Location"], ["startDate", "Start date"], ["endDate", "End date"], ["description", "Description", "textarea"], ["achievements", "Achievements", "textarea"]] },
+    education: { title: "Education", fields: [["degree", "Degree"], ["specialization", "Specialization / branch"], ["institution", "College / university"], ["location", "Location"], ["startDate", "Start year"], ["endDate", "End year"], ["grade", "Grade / CGPA / percentage"], ["description", "Relevant coursework / notes", "textarea"]] },
+    projects: { title: "Projects", fields: [["name", "Project name"], ["description", "Description", "textarea"], ["role", "Your role"], ["technologies", "Technologies"], ["github", "GitHub link"], ["live", "Project / live link"]] },
+    experience: { title: "Experience", fields: [["title", "Job / internship title"], ["company", "Company"], ["location", "Location"], ["startDate", "Start date", "date"], ["endDate", "End date", "date"], ["description", "Responsibilities", "textarea"], ["achievements", "Achievements", "textarea"]] },
     hackathons: { title: "Hackathons", fields: [["name", "Hackathon"], ["organization", "Organization"], ["project", "Project"], ["result", "Achievement / result"], ["technologies", "Technologies"]] },
     certifications: { title: "Certifications", fields: [["name", "Certificate"], ["organization", "Issuing organization"], ["date", "Date"], ["credential", "Credential link"]] },
     languages: { title: "Languages", fields: [["name", "Language"], ["proficiency", "Proficiency"]] },
     achievements: { title: "Achievements & awards", fields: [["name", "Award"], ["organization", "Organization"], ["date", "Date"], ["description", "Description", "textarea"]] }
+  };
+  const extraSections = {
+    volunteering: { title: "Volunteer experience", fields: [["name", "Role"], ["organization", "Organization"], ["location", "Location"], ["startDate", "Start date"], ["endDate", "End date"], ["description", "Contribution", "textarea"]] },
+    leadership: { title: "Leadership", fields: [["name", "Role"], ["organization", "Organization"], ["location", "Location"], ["startDate", "Start date"], ["endDate", "End date"], ["description", "Contribution", "textarea"]] },
+    publications: { title: "Publications", fields: [["name", "Title"], ["organization", "Publisher / journal"], ["date", "Date"], ["credential", "URL"]] },
+    interests: { title: "Interests & extracurriculars", fields: [["name", "Interest / activity"]] }
   };
   const labels = {
     English: { contact: "Contact", present: "Present", summary: "Profile", education: "Education", skills: "Technical skills", projects: "Projects", experience: "Experience", hackathons: "Hackathons", certifications: "Certifications", languages: "Languages", achievements: "Achievements" },
@@ -27,8 +33,9 @@
     let skills = Array.isArray(data.skills) ? data.skills : [];
     if (typeof data.skills === "string") skills = data.skills.split(/[,\n;]/).map((name) => name.trim()).filter(Boolean).map((name) => ({ category: "Other", name }));
     return {
-      personal: { ...emptyPersonal(), ...personal, name: cleanText(personal.name ?? data.name), title: cleanText(personal.title ?? data.headline) },
+      personal: { ...emptyPersonal(), ...personal, name: cleanText(personal.name ?? data.name), title: cleanText(personal.title ?? data.headline), photo: cleanText(personal.photo) },
       summary: cleanText(data.summary),
+      careerGoal: cleanText(data.careerGoal),
       education: Array.isArray(data.education) ? data.education : [],
       skills,
       projects: Array.isArray(data.projects) ? data.projects : [],
@@ -37,8 +44,12 @@
       certifications: Array.isArray(data.certifications) ? data.certifications : [],
       languages: Array.isArray(data.languages) ? data.languages : [],
       achievements: Array.isArray(data.achievements) ? data.achievements : [],
-      template: ["classic", "modern", "european"].includes(data.template) ? data.template : "classic",
+      template: ({ classic: "minimal", european: "professional" })[data.template] || (["professional", "modern", "minimal", "student"].includes(data.template) ? data.template : "minimal"),
       europeanMode: data.europeanMode === true,
+      fontSize: Number.isFinite(data.fontSize) ? Math.max(9, Math.min(13, data.fontSize)) : 10,
+      sectionOrder: Array.isArray(data.sectionOrder) ? [...new Set(data.sectionOrder.filter((name) => ["summary", "education", "experience", "projects", "skills", "certifications", "achievements", "hackathons", "volunteering", "leadership", "publications", "languages", "interests"].includes(name)))] : ["summary", "education", "experience", "projects", "skills", "certifications", "achievements", "hackathons", "volunteering", "leadership", "publications", "languages", "interests"],
+      hiddenSections: Array.isArray(data.hiddenSections) ? [...new Set(data.hiddenSections)] : [],
+      extras: Object.fromEntries(["volunteering", "leadership", "publications", "interests"].map((section) => [section, Array.isArray(data.extras?.[section]) ? data.extras[section] : []])),
       target: {
         type: ["University", "Ausbildung", "Internship", "Job", "Scholarship"].includes(data.target?.type) ? data.target.type : "Job",
         title: cleanText(data.target?.title),
@@ -51,7 +62,7 @@
   function prefill(value, profile) {
     const data = normalize(value);
     const applicantProfile = profile || {};
-    if (!data.personal.email && applicantProfile.email) data.personal.email = applicantProfile.email;
+    if (!data.personal.email && applicantProfile.email && !applicantProfile.email.endsWith("@guest.journova.invalid")) data.personal.email = applicantProfile.email;
     if (!data.personal.title && applicantProfile.field) data.personal.title = `${applicantProfile.field} applicant`;
     if (!data.education.length && applicantProfile.education) {
       data.education.push({
@@ -82,7 +93,7 @@
   function field(path, label, value, type = "text") {
     const control = type === "textarea"
       ? `<textarea class="answer-control cv-textarea" data-cv-path="${esc(path)}" rows="3" maxlength="2000">${esc(value)}</textarea>`
-      : `<input class="answer-control" data-cv-path="${esc(path)}" value="${esc(value)}" maxlength="300" ${type === "url" ? 'type="url"' : "type=\"text\""}>`;
+      : `<input class="answer-control" data-cv-path="${esc(path)}" value="${esc(value)}" maxlength="300" type="${["url", "email", "date"].includes(type) ? type : "text"}">`;
     return `<label class="field-label cv-field">${esc(label)}${control}</label>`;
   }
 
@@ -92,10 +103,11 @@
     return dates.length ? `<span class="cv-date">${dates.map(esc).join(" – ")}</span>` : "";
   }
 
-  function itemFields(section, entries) {
-    const definition = sections[section];
+  function itemFields(section, entries, titleOverride, fieldsOverride) {
+    const definition = fieldsOverride ? { title: titleOverride, fields: fieldsOverride } : sections[section] || extraSections[section];
+    if (!definition) return "";
     const rows = entries.length ? entries : [];
-    return `<section class="cv-editor-section"><div class="cv-editor-heading"><h2>${esc(definition.title)}</h2><button class="small-button" type="button" data-action="cv-add" data-section="${section}">＋ Add ${esc(section === "achievements" ? "award" : section.slice(0, -1))}</button></div>${rows.length ? rows.map((entry, index) => `<article class="cv-entry"><div class="cv-entry-heading"><strong>${esc(definition.title.slice(0, -1))} ${index + 1}</strong><button class="small-button" type="button" data-action="cv-remove" data-section="${section}" data-index="${index}" aria-label="Remove ${esc(definition.title)} entry">Remove</button></div><div class="cv-form-grid">${definition.fields.map(([key, label, type]) => `<div class="${type === "textarea" ? "cv-field-wide" : ""}">${field(`${section}.${index}.${key}`, label, entry[key], type)}</div>`).join("")}</div>${section === "projects" ? `<button class="small-button" type="button" data-action="cv-improve" data-path="${section}.${index}.description">Improve wording</button>` : ""}</article>`).join("") : `<p class="indicative-note">Add details when you have them. Empty sections are omitted from the CV.</p>`}</section>`;
+    return `<section class="cv-editor-section"><div class="cv-editor-heading"><h2>${esc(definition.title)}</h2><button class="small-button" type="button" data-action="cv-add" data-section="${section}">＋ Add ${esc(section === "achievements" ? "award" : section.slice(0, -1))}</button></div>${rows.length ? rows.map((entry, index) => `<article class="cv-entry" data-cv-add-entry="${esc(section)}"><div class="cv-entry-heading"><strong>${esc(definition.title.slice(0, -1))} ${index + 1}</strong><button class="small-button" type="button" data-action="cv-remove" data-section="${section}" data-index="${index}" aria-label="Remove ${esc(definition.title)} entry">Remove</button></div><div class="cv-form-grid">${definition.fields.map(([key, label, type]) => `<div class="${type === "textarea" ? "cv-field-wide" : ""}">${field(`${section}.${index}.${key}`, label, entry[key], type)}</div>`).join("")}</div>${section === "projects" || section === "experience" ? `<button class="small-button" type="button" data-action="cv-improve" data-path="${section}.${index}.description">Improve description with AI</button>${section === "experience" ? `<button class="small-button" type="button" data-action="cv-improve" data-path="${section}.${index}.achievements">Improve achievements with AI</button>` : ""}` : ""}</article>`).join("") : `<p class="indicative-note">Add details when you have them. Empty sections are omitted from the CV.</p>`}</section>`;
   }
 
   function editor(data, profile, applications, selectedApplicationId) {
@@ -104,21 +116,31 @@
     const targetApplications = (applications || []).map((application) =>
       `<option value="${esc(application.id)}" ${application.id === selectedApplicationId ? "selected" : ""}>${esc(application.title)}${application.organization ? ` · ${esc(application.organization)}` : ""}</option>`
     ).join("");
-    return `<div class="screen-head"><div><span class="kicker">Tools</span><h1>Professional CV Builder</h1><p>Build a factual, ATS-readable CV and tailor it to one opportunity at a time.</p></div></div>
+    const extrasHtml = Object.entries(extraSections).map(([key, definition]) =>
+      itemFields(key, data.extras[key], definition.title, definition.fields)
+    ).join("");
+    const sectionControls = data.sectionOrder.map((key, index) => {
+      const title = key === "summary" ? "Summary" : sections[key]?.title || extraSections[key]?.title || (key === "languages" ? "Languages" : key.charAt(0).toUpperCase() + key.slice(1));
+      return `<div class="cv-section-control"><label><input type="checkbox" data-cv-section-visible="${esc(key)}" ${data.hiddenSections.includes(key) ? "" : "checked"}> ${esc(title)}</label><div><button class="small-button" type="button" data-action="cv-section-move" data-section="${esc(key)}" data-direction="-1" ${index === 0 ? "disabled" : ""} aria-label="Move ${esc(title)} up">↑</button><button class="small-button" type="button" data-action="cv-section-move" data-section="${esc(key)}" data-direction="1" ${index === data.sectionOrder.length - 1 ? "disabled" : ""} aria-label="Move ${esc(title)} down">↓</button></div></div>`;
+    }).join("");
+    return `<div class="screen-head"><div><span class="kicker">Tools</span><h1>Automatic CV Generator</h1><p>Create, edit and export tailored CVs. Your information is saved privately to your account.</p></div></div>
       <div class="cv-layout">
         <section class="cv-editor glass-card">
+          <nav class="cv-step-nav" aria-label="CV form steps">${[["My CVs", 0], ["Personal", 1], ["Summary", 2], ["Education", 3], ["Skills", 4], ["Experience", 6], ["Additional", 7], ["Target & export", 15]].map(([label, index], step) => `<button type="button" data-action="cv-step" data-index="${index}" ${step === 0 ? 'aria-current="step"' : ""}>${step + 1}. ${label}</button>`).join("")}<a href="#cv-preview">Preview</a></nav>
+          <section class="cv-editor-section"><div class="cv-editor-heading"><h2>My CVs</h2><button class="small-button" type="button" data-action="cv-create">＋ New CV</button></div><label class="field-label cv-field">Select CV<select class="answer-control" data-cv-select>${(profile.cvDocuments || []).map((item) => `<option value="${esc(item.id)}" ${item.id === profile.activeCvId ? "selected" : ""}>${esc(item.title)}</option>`).join("")}</select></label><label class="field-label cv-field">CV name<input class="answer-control" data-cv-title value="${esc(profile.activeCvTitle || "")}" maxlength="120" required></label><div class="cv-actions"><button class="small-button" type="button" data-action="cv-duplicate">Duplicate</button><button class="small-button" type="button" data-action="cv-delete">Delete CV</button></div></section>
           <section class="cv-editor-section"><div class="cv-editor-heading"><h2>Personal information</h2></div><div class="cv-form-grid">${[
-      ["name", "Full name"], ["title", "Professional title"], ["email", "Email"], ["phone", "Phone"], ["location", "Location"], ["linkedin", "LinkedIn URL"], ["github", "GitHub URL"], ["portfolio", "Portfolio URL"]
-    ].map(([key, label]) => field(`personal.${key}`, label, personal[key], key.endsWith("URL") ? "url" : "text")).join("")}</div><p class="indicative-note">No date of birth, photograph or other sensitive details are added automatically.</p></section>
-          <section class="cv-editor-section"><div class="cv-editor-heading"><h2>Professional summary</h2><button class="small-button" type="button" data-action="cv-summary">Generate with local writing assist</button></div>${field("summary", "2–4 concise lines", data.summary, "textarea")}<p class="indicative-note">Uses only details you entered here or in your existing profile. No external AI service is connected.</p></section>
+      ["name", "Full name"], ["title", "Professional title"], ["email", "Email", "email"], ["phone", "Phone number"], ["location", "City, country"], ["linkedin", "LinkedIn URL", "url"], ["github", "GitHub URL", "url"], ["portfolio", "Portfolio URL", "url"]
+    ].map(([key, label, type = "text"]) => field(`personal.${key}`, label, personal[key], type)).join("")}<label class="field-label cv-field cv-field-wide">Optional profile photo<input class="answer-control" type="file" accept="image/jpeg,image/png,image/webp" data-cv-photo><span class="indicative-note">Optional. Use a small JPG, PNG or WebP; the photo is excluded from the ATS-friendly layout.</span>${personal.photo ? `<button class="small-button" type="button" data-action="cv-remove-photo">Remove photo</button>` : ""}</label></div></section>
+          <section class="cv-editor-section"><div class="cv-editor-heading"><h2>Career objective & summary</h2><button class="small-button" type="button" data-action="cv-summary">Draft summary with AI</button></div>${field("careerGoal", "Career goal (optional)", data.careerGoal, "textarea")}${field("summary", "Short professional summary", data.summary, "textarea")}</section>
           ${itemFields("education", data.education)}
-          <section class="cv-editor-section"><div class="cv-editor-heading"><h2>Technical skills</h2><button class="small-button" type="button" data-action="cv-add" data-section="skills">＋ Add skill</button></div>${data.skills.length ? data.skills.map((skill, index) => `<article class="cv-entry cv-skill-entry"><label class="field-label cv-field">Category<select class="answer-control" data-cv-path="skills.${index}.category">${categories.map((category) => `<option ${skill.category === category ? "selected" : ""}>${esc(category)}</option>`).join("")}</select></label>${field(`skills.${index}.name`, "Skill", skill.name)}<button class="small-button" type="button" data-action="cv-remove" data-section="skills" data-index="${index}">Remove</button></article>`).join("") : `<p class="indicative-note">List only skills you can discuss or demonstrate.</p>`}<button class="small-button" type="button" data-action="cv-suggest">Suggest from your CV</button><div class="cv-suggestions" data-cv-suggestions></div></section>
-          ${sectionsHtml}
-          <section class="cv-editor-section"><div class="cv-editor-heading"><h2>Target & format</h2></div><div class="cv-form-grid"><label class="field-label cv-field">Target<select class="answer-control" data-cv-path="target.type">${["University", "Ausbildung", "Internship", "Job", "Scholarship"].map((item) => `<option ${data.target.type === item ? "selected" : ""}>${item}</option>`).join("")}</select></label><label class="field-label cv-field">Content language<select class="answer-control" data-cv-path="target.language"><option ${data.target.language === "English" ? "selected" : ""}>English</option><option ${data.target.language === "German" ? "selected" : ""}>German</option></select></label><label class="field-label cv-field cv-field-wide">Target role / programme<input class="answer-control" data-cv-path="target.title" value="${esc(data.target.title)}" maxlength="300" placeholder="AI/ML Intern"></label><label class="field-label cv-field cv-field-wide">Job / programme description<textarea class="answer-control cv-textarea" data-cv-path="target.description" rows="4" maxlength="5000" placeholder="Paste requirements from the official listing">${esc(data.target.description)}</textarea></label></div><label class="cv-check"><input type="checkbox" data-cv-path="europeanMode" ${data.europeanMode ? "checked" : ""}> German / European CV mode · reverse chronological sections</label><p class="indicative-note">Write or review German-language content yourself; the builder does not translate or add personal details.</p><label class="field-label cv-field">Template<select class="answer-control" data-cv-path="template"><option value="classic" ${data.template === "classic" ? "selected" : ""}>Classic · ATS friendly</option><option value="modern" ${data.template === "modern" ? "selected" : ""}>Modern · restrained</option><option value="european" ${data.template === "european" ? "selected" : ""}>European · clean and chronological</option></select></label></section>
-          <div class="cv-actions"><button class="next-button" type="button" data-action="cv-save">Save CV & add to Documents</button><button class="secondary-button" type="button" data-action="cv-download-text">Download text</button></div>
-          <p class="indicative-note">Saving stores CV data in your existing authenticated profile and updates its existing CV document slot. A re-upload replaces that CV file only after confirmation.</p>
+          <section class="cv-editor-section"><div class="cv-editor-heading"><h2>Skills</h2><button class="small-button" type="button" data-action="cv-add" data-section="skills">＋ Add skill</button></div>${data.skills.length ? data.skills.map((skill, index) => `<article class="cv-entry cv-skill-entry" data-cv-add-entry="skills"><label class="field-label cv-field">Category<select class="answer-control" data-cv-path="skills.${index}.category">${categories.map((category) => `<option ${skill.category === category ? "selected" : ""}>${esc(category)}</option>`).join("")}</select></label>${field(`skills.${index}.name`, "Skill", skill.name)}<button class="small-button" type="button" data-action="cv-improve" data-path="skills.${index}.name">Improve wording with AI</button><button class="small-button" type="button" data-action="cv-remove" data-section="skills" data-index="${index}">Remove</button></article>`).join("") : `<p class="indicative-note">Add only skills you can discuss or demonstrate.</p>`}</section>
+          ${sectionsHtml}${extrasHtml}
+          <section class="cv-editor-section"><div class="cv-editor-heading"><h2>Target role & format</h2></div><div class="cv-form-grid"><label class="field-label cv-field cv-field-wide">Which job role are you applying for?<input class="answer-control" data-cv-path="target.title" value="${esc(data.target.title)}" maxlength="300" placeholder="e.g. Software Developer, Data Analyst" required></label><label class="field-label cv-field">Target type<select class="answer-control" data-cv-path="target.type">${["University", "Ausbildung", "Internship", "Job", "Scholarship"].map((item) => `<option ${data.target.type === item ? "selected" : ""}>${item}</option>`).join("")}</select></label><label class="field-label cv-field">Language<select class="answer-control" data-cv-path="target.language"><option ${data.target.language === "English" ? "selected" : ""}>English</option><option ${data.target.language === "German" ? "selected" : ""}>German</option></select></label><label class="field-label cv-field cv-field-wide">Paste a job description (optional)<textarea class="answer-control cv-textarea" data-cv-path="target.description" rows="4" maxlength="5000" placeholder="Paste the job description to compare keywords">${esc(data.target.description)}</textarea></label></div><div class="cv-actions"><button class="small-button" type="button" data-action="cv-match">Match job description</button><button class="small-button" type="button" data-action="cv-optimize">Get truthful optimization suggestions</button></div><div data-cv-job-match></div><p class="indicative-note">Missing skills are suggestions only. Add them only if they genuinely describe you.</p></section>
+          <section class="cv-editor-section"><div class="cv-editor-heading"><h2>Template & preview controls</h2></div><label class="field-label cv-field">Template<select class="answer-control" data-cv-path="template"><option value="professional" ${data.template === "professional" ? "selected" : ""}>Professional</option><option value="modern" ${data.template === "modern" ? "selected" : ""}>Modern</option><option value="minimal" ${data.template === "minimal" ? "selected" : ""}>Minimal ATS</option><option value="student" ${data.template === "student" ? "selected" : ""}>Student / fresher</option></select></label><label class="field-label cv-field">Preview font size <input class="answer-control" type="range" min="9" max="13" step="0.5" data-cv-path="fontSize" value="${data.fontSize}"></label><h3>Visible sections & order</h3><div class="cv-section-controls">${sectionControls}</div><label class="field-label cv-field">AI writing focus<select class="answer-control" data-cv-ai-style><option value="professional">More professional</option><option value="grammar">Fix grammar</option><option value="concise">More concise</option><option value="actionVerbs">Stronger action verbs</option></select></label><label class="cv-check"><input type="checkbox" data-cv-ai-consent ${profile.cvAiConsent ? "checked" : ""}> I agree to send CV details to the configured AI provider for writing help. Review all suggestions before using them.</label><p class="indicative-note">AI features require a server-side provider configuration. The CV builder never adds unprovided qualifications. Do not include sensitive details you do not want sent to that provider.</p></section>
+          <div class="cv-actions"><button class="next-button" type="button" data-action="cv-save">Save CV</button><button class="secondary-button" type="button" data-action="cv-save-document">Save CV to Documents</button><a class="secondary-button" data-cv-docx href="/api/cv/${esc(profile.activeCvId || "")}/docx">Download DOCX</a><button class="secondary-button" type="button" data-action="cv-download-text">Download text</button></div>
+          <p class="indicative-note">Changes autosave to your private CV library. PDF export uses your browser’s print dialog to preserve this preview; choose “Save as PDF.”</p>
         </section>
-        <section class="cv-preview-column"><div class="cv-toolbar"><label class="field-label">Optimize for an application<select class="answer-control" data-cv-application><option value="">Choose an application</option>${targetApplications}</select></label><div class="cv-actions"><button class="small-button" type="button" data-action="cv-analyze">Analyze CV</button><button class="small-button" type="button" data-action="cv-ats">Analyze ATS compatibility</button></div><div class="cv-actions"><button class="small-button" type="button" data-action="cv-optimize" data-target-type="Job">Optimize for Job</button><button class="small-button" type="button" data-action="cv-optimize" data-target-type="University">University</button><button class="small-button" type="button" data-action="cv-optimize" data-target-type="Ausbildung">Ausbildung</button></div><div class="cv-target-panel"><strong>${esc(data.target.title || data.target.type)} match</strong><p data-cv-match>${esc(matchSummary(data))}</p><p class="indicative-note">Matches terms you provided against your existing CV text. Missing keywords are not assumed skills.</p></div><div class="cv-analysis-panel" data-cv-analysis hidden></div></div><div class="cv-paper-wrap"><article class="cv-paper cv-template-${esc(data.template)}" data-cv-preview-root>${renderPreview(data, profile)}</article></div><div class="cv-actions cv-export-actions"><button class="next-button" type="button" data-action="cv-pdf">Download PDF</button><button class="secondary-button" type="button" data-action="cv-print">Print CV</button></div><p class="indicative-note">PDF export opens your browser’s print dialog. Choose “Save as PDF” for selectable text on A4 paper.</p></section>
+        <section class="cv-preview-column"><div class="cv-toolbar"><label class="field-label">Optimize for an application<select class="answer-control" data-cv-application><option value="">Choose an application</option>${targetApplications}</select></label><div class="cv-actions"><button class="small-button" type="button" data-action="cv-ats">Analyze ATS readiness</button><button class="small-button" type="button" data-action="cv-match">Match job description</button></div><div class="cv-target-panel"><strong>${esc(data.target.title || data.target.type)} · keyword coverage</strong><p data-cv-match>${esc(matchSummary(data))}</p><p class="indicative-note">A transparent keyword and completeness estimate; not a real employer’s ATS score.</p></div><div class="cv-analysis-panel" data-cv-analysis hidden></div></div><div class="cv-actions cv-preview-controls"><button class="small-button" type="button" data-action="cv-zoom" data-step="-0.1" aria-label="Zoom out">−</button><span data-cv-zoom-label>100%</span><button class="small-button" type="button" data-action="cv-zoom" data-step="0.1" aria-label="Zoom in">＋</button><button class="small-button" type="button" data-action="cv-page" data-step="-1">Previous page</button><span data-cv-page-label>Page 1</span><button class="small-button" type="button" data-action="cv-page" data-step="1">Next page</button></div><div class="cv-paper-wrap" id="cv-preview" data-cv-paper-wrap><article class="cv-paper cv-template-${esc(data.template)}" style="--cv-font-size:${data.fontSize}px" data-cv-preview-root>${renderPreview(data, profile)}</article></div><div class="cv-actions cv-export-actions"><button class="next-button" type="button" data-action="cv-pdf">Download PDF</button><button class="secondary-button" type="button" data-action="cv-print">Print CV</button></div><p class="indicative-note">Print preview, select “Save as PDF” and enable background graphics for an exact-layout PDF.</p></section>
       </div>`;
   }
 
@@ -232,42 +254,56 @@
     const data = normalize(value);
     const words = labels[data.target.language];
     const personal = data.personal;
-    const contact = [personal.email || profile?.email, personal.phone, personal.location, personal.linkedin, personal.github, personal.portfolio].filter(Boolean);
+    const accountEmail = profile?.email && !profile.email.endsWith("@guest.journova.invalid") ? profile.email : "";
+    const contact = [personal.email || accountEmail, personal.phone, personal.location, personal.linkedin, personal.github, personal.portfolio].filter(Boolean);
     const education = sortRecent(data.education, data.europeanMode).map((item) => {
       const title = [item.degree, item.institution].filter(Boolean).map(esc).join(" · ");
-      const detail = [item.location, item.grade, item.description].filter(Boolean).map(esc).join(" · ");
+      const detail = [item.specialization, item.location, item.grade, item.description].filter(Boolean).map(esc).join(" · ");
       if (!title && !detail) return "";
       return `<article class="cv-item"><div class="cv-item-head"><strong>${title}</strong>${dateText(item.startDate, item.endDate, words)}</div>${detail ? `<p>${detail}</p>` : ""}</article>`;
     }).join("");
     const skills = data.skills.filter((item) => item.name).map((item) => `<p class="cv-skill"><strong>${esc(item.category || words.skills)}:</strong> ${esc(item.name)}</p>`).join("");
     const projects = data.projects.map((item) => {
       if (!item.name && !item.description) return "";
-      return `<article class="cv-item"><div class="cv-item-head"><strong>${esc(item.name)}</strong>${item.technologies ? `<span class="cv-date">${esc(item.technologies)}</span>` : ""}</div>${item.description ? `<p>${listLines(item.description).map(esc).join("<br>")}</p>` : ""}<p class="cv-links">${[item.github, item.live].filter(Boolean).map((link) => `<span>${esc(link)}</span>`).join(" · ")}</p></article>`;
+      return `<article class="cv-item"><div class="cv-item-head"><strong>${esc(item.name)}${item.role ? ` · ${esc(item.role)}` : ""}</strong>${item.technologies ? `<span class="cv-date">${esc(item.technologies)}</span>` : ""}</div>${item.description ? `<p>${listLines(item.description).map((line) => `• ${esc(line)}`).join("<br>")}</p>` : ""}<p class="cv-links">${[item.github, item.live].filter(Boolean).map((link) => `<span>${esc(link)}</span>`).join(" · ")}</p></article>`;
     }).join("");
     const experience = sortRecent(data.experience, data.europeanMode).map((item) => {
       if (!item.title && !item.company) return "";
-      return `<article class="cv-item"><div class="cv-item-head"><strong>${[item.title, item.company].filter(Boolean).map(esc).join(" · ")}</strong>${dateText(item.startDate, item.endDate, words)}</div>${item.location ? `<p>${esc(item.location)}</p>` : ""}${[item.description, item.achievements].filter(Boolean).map((part) => `<p>${listLines(part).map(esc).join("<br>")}</p>`).join("")}</article>`;
+      return `<article class="cv-item"><div class="cv-item-head"><strong>${[item.title, item.company].filter(Boolean).map(esc).join(" · ")}</strong>${dateText(item.startDate, item.endDate, words)}</div>${item.location ? `<p>${esc(item.location)}</p>` : ""}${[item.description, item.achievements].filter(Boolean).map((part) => `<p>${listLines(part).map((line) => `• ${esc(line)}`).join("<br>")}</p>`).join("")}</article>`;
     }).join("");
     const hackathons = data.hackathons.filter((item) => item.name || item.project).map((item) => `<p class="cv-compact"><strong>${[item.name, item.organization].filter(Boolean).map(esc).join(" · ")}</strong>${[item.project, item.result, item.technologies].filter(Boolean).length ? ` — ${[item.project, item.result, item.technologies].filter(Boolean).map(esc).join(" · ")}` : ""}</p>`).join("");
     const certifications = data.certifications.filter((item) => item.name).map((item) => `<p class="cv-compact"><strong>${esc(item.name)}</strong>${[item.organization, item.date, item.credential].filter(Boolean).length ? ` — ${[item.organization, item.date, item.credential].filter(Boolean).map(esc).join(" · ")}` : ""}</p>`).join("");
     const languages = data.languages.filter((item) => item.name).map((item) => `<p class="cv-compact">${esc(item.name)}${item.proficiency ? ` — ${esc(item.proficiency)}` : ""}</p>`).join("");
     const achievements = data.achievements.filter((item) => item.name).map((item) => `<p class="cv-compact"><strong>${esc(item.name)}</strong>${[item.organization, item.date, item.description].filter(Boolean).length ? ` — ${[item.organization, item.date, item.description].filter(Boolean).map(esc).join(" · ")}` : ""}</p>`).join("");
     const subtitle = personal.title ? `<p class="cv-title">${esc(personal.title)}</p>` : "";
-    return `<header class="cv-header"><h1>${esc(personal.name || "Your name")}</h1>${subtitle}${contact.length ? `<p class="cv-contact">${contact.map(esc).join(" | ")}</p>` : ""}</header>
-      ${sectionBlock(words.summary, data.summary ? `<p class="cv-summary">${esc(data.summary)}</p>` : "")}
-      ${sectionBlock(words.education, education)}
-      ${sectionBlock(words.skills, skills)}
-      ${sectionBlock(words.projects, projects)}
-      ${sectionBlock(words.experience, experience)}
-      ${sectionBlock(words.hackathons, hackathons)}
-      ${sectionBlock(words.certifications, certifications)}
-      ${sectionBlock(words.languages, languages)}
-      ${sectionBlock(words.achievements, achievements)}`;
+    const extrasMarkup = (key) => (data.extras[key] || []).map((item) =>
+      `<article class="cv-item"><div class="cv-item-head"><strong>${esc(item.name)}</strong>${dateText(item.startDate || item.date, item.endDate, words)}</div><p>${[item.organization, item.location, item.description, item.credential].filter(Boolean).map(esc).join(" · ")}</p></article>`
+    ).join("");
+    const content = {
+      summary: [data.careerGoal ? `<p class="cv-summary"><strong>Career goal:</strong> ${esc(data.careerGoal)}</p>` : "", data.summary ? `<p class="cv-summary">${esc(data.summary)}</p>` : ""].join(""),
+      education,
+      experience,
+      projects,
+      skills,
+      certifications,
+      achievements,
+      volunteering: extrasMarkup("volunteering"),
+      leadership: extrasMarkup("leadership"),
+      publications: extrasMarkup("publications"),
+      languages,
+      interests: extrasMarkup("interests"),
+      hackathons
+    };
+    const titles = { summary: words.summary, education: words.education, experience: words.experience, projects: words.projects, skills: words.skills, certifications: words.certifications, achievements: words.achievements, volunteering: "Volunteer Experience", leadership: "Leadership", publications: "Publications", languages: words.languages, interests: "Interests & Extracurriculars", hackathons: words.hackathons };
+    const blocks = data.sectionOrder
+      .filter((section) => !data.hiddenSections.includes(section))
+      .map((section) => sectionBlock(titles[section] || section, content[section] || ""));
+    return `<header class="cv-header">${data.template === "modern" && personal.photo ? `<img class="cv-photo" src="${esc(personal.photo)}" alt="">` : ""}<h1>${esc(personal.name || "Your name")}</h1>${subtitle}${contact.length ? `<p class="cv-contact">${contact.map(esc).join(" | ")}</p>` : ""}</header>${blocks.join("")}`;
   }
 
   function plainText(value, profile) {
     const data = normalize(value);
-    const email = data.personal.email || profile?.email;
+    const email = data.personal.email || (profile?.email && !profile.email.endsWith("@guest.journova.invalid") ? profile.email : "");
     const parts = [
       data.personal.name,
       data.personal.title,
@@ -279,14 +315,18 @@
     };
     const words = labels[data.target.language];
     section(words.summary, [data.summary]);
-    section(words.education, data.education.map((item) => [item.degree, item.institution, item.location, [item.startDate, item.endDate].filter(Boolean).join(" – "), item.grade, item.description].filter(Boolean).join(" | ")));
+    section("Career goal", [data.careerGoal]);
+    section(words.education, data.education.map((item) => [item.degree, item.specialization, item.institution, item.location, [item.startDate, item.endDate].filter(Boolean).join(" – "), item.grade, item.description].filter(Boolean).join(" | ")));
     section(words.skills, data.skills.map((item) => `${item.category}: ${item.name}`));
-    section(words.projects, data.projects.map((item) => [item.name, item.description, item.technologies, item.github, item.live].filter(Boolean).join(" | ")));
+    section(words.projects, data.projects.map((item) => [item.name, item.description, item.role, item.technologies, item.github, item.live].filter(Boolean).join(" | ")));
     section(words.experience, data.experience.map((item) => [item.title, item.company, item.location, [item.startDate, item.endDate].filter(Boolean).join(" – "), item.description, item.achievements].filter(Boolean).join(" | ")));
     section(words.hackathons, data.hackathons.map((item) => [item.name, item.organization, item.project, item.result, item.technologies].filter(Boolean).join(" | ")));
     section(words.certifications, data.certifications.map((item) => [item.name, item.organization, item.date, item.credential].filter(Boolean).join(" | ")));
     section(words.languages, data.languages.map((item) => [item.name, item.proficiency].filter(Boolean).join(" — ")));
     section(words.achievements, data.achievements.map((item) => [item.name, item.organization, item.date, item.description].filter(Boolean).join(" | ")));
+    for (const [key, entries] of Object.entries(data.extras)) {
+      section(key, entries.map((item) => Object.values(item).filter(Boolean).join(" | ")));
+    }
     return parts.join("\n").trim();
   }
 
@@ -305,7 +345,7 @@
     plainText,
     createEntry(section) {
       if (section === "skills") return { category: "Programming Languages", name: "" };
-      const definition = sections[section];
+      const definition = sections[section] || extraSections[section];
       return definition ? Object.fromEntries(definition.fields.map(([key]) => [key, ""])) : null;
     }
   };
