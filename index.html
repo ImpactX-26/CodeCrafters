@@ -1,0 +1,1996 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d19">
+  <meta name="description" content="Journova AI — your journey to Germany, intelligently evolved.">
+  <title>Journova AI — Your Journey. Intelligently Evolved.</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #080d19;
+      --surface: rgba(17, 26, 43, .78);
+      --surface-raised: rgba(23, 34, 54, .88);
+      --text: #f3f7ff;
+      --muted: #8d9ab1;
+      --line: rgba(161, 181, 216, .14);
+      --accent: #9dff70;
+      --accent-ink: #10200a;
+      --glow: rgba(157, 255, 112, .24);
+      --blue: #7b9cff;
+      --shadow: 0 28px 90px rgba(0, 0, 0, .42);
+    }
+
+    [data-theme="light"] {
+      color-scheme: light;
+      --page: #f3f6fb;
+      --surface: rgba(255, 255, 255, .84);
+      --surface-raised: #fff;
+      --text: #172033;
+      --muted: #67748a;
+      --line: rgba(50, 66, 96, .13);
+      --accent: #68d942;
+      --accent-ink: #10200a;
+      --glow: rgba(104, 217, 66, .22);
+      --blue: #536fd8;
+      --shadow: 0 28px 90px rgba(45, 62, 94, .13);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 18% 32%, rgba(35, 59, 103, .24), transparent 35%),
+        radial-gradient(ellipse at 83% 84%, rgba(92, 139, 73, .10), transparent 31%),
+        var(--page);
+      color: var(--text);
+      font-family: "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif;
+      transition: background-color .35s, color .35s;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .shell { width: min(1220px, calc(100% - 64px)); margin: 0 auto; }
+
+    .topbar {
+      height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+    .brand-mark {
+      width: 39px; height: 39px; display: grid; place-items: center;
+      border: 1px solid rgba(157, 255, 112, .4); border-radius: 13px;
+      background: linear-gradient(145deg, rgba(157, 255, 112, .18), rgba(157, 255, 112, .035));
+      box-shadow: 0 0 28px var(--glow); color: var(--accent);
+    }
+    .brand-mark svg { width: 22px; height: 22px; }
+    .brand-name { font: 800 17px/1 "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif; letter-spacing: .14em; }
+    .brand-name span { color: var(--accent); }
+    .brand-caption { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; letter-spacing: .16em; }
+    .toolbar { display: flex; gap: 9px; }
+    .tool-button {
+      min-height: 40px; padding: 0 13px; display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+      color: var(--muted); cursor: pointer; transition: .2s ease;
+    }
+    .tool-button:hover { border-color: rgba(157, 255, 112, .45); color: var(--text); }
+    .tool-button svg { width: 16px; height: 16px; }
+    .tool-button .toggle-label { color: var(--text); font-size: 12px; }
+
+    main { padding: 62px 0 52px; }
+    .layout {
+      min-height: 620px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(400px, .85fr);
+      align-items: center;
+      gap: clamp(38px, 7vw, 96px);
+    }
+
+    .journey { position: relative; min-height: 560px; display: flex; flex-direction: column; justify-content: center; }
+    .eyebrow {
+      display: flex; align-items: center; gap: 9px; margin: 0 0 20px;
+      color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .19em; text-transform: uppercase;
+    }
+    .eyebrow::before { width: 23px; height: 1px; background: var(--accent); content: ""; }
+    h1 {
+      max-width: 600px; margin: 0;
+      font: 600 clamp(42px, 5vw, 66px)/1.08 "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif;
+      letter-spacing: -.055em;
+    }
+    h1 .highlight { color: var(--accent); }
+    .hero-subtitle { margin: 19px 0 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+
+    .route-scene {
+      position: relative; height: 285px; margin-top: 26px; overflow: hidden;
+      border: 1px solid var(--line); border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(17, 28, 49, .22), rgba(17, 28, 49, .5)),
+        radial-gradient(ellipse at 51% 64%, rgba(77, 113, 157, .18), transparent 48%);
+      isolation: isolate;
+    }
+    [data-theme="light"] .route-scene { background: linear-gradient(180deg, rgba(255,255,255,.46), rgba(232,239,249,.72)); }
+    .scene-grid {
+      position: absolute; inset: 0; z-index: -1; opacity: .26;
+      background-image: linear-gradient(rgba(157, 182, 224, .14) 1px, transparent 1px), linear-gradient(90deg, rgba(157, 182, 224, .14) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    }
+    .route-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .route-base { fill: none; stroke: rgba(133, 161, 206, .23); stroke-width: 2; stroke-dasharray: 5 9; }
+    .route-glow { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 5 11; filter: drop-shadow(0 0 5px var(--accent)); animation: route-flow 2.5s linear infinite; }
+    @keyframes route-flow { to { stroke-dashoffset: -64; } }
+    .map-halo { fill: var(--accent); opacity: .12; animation: pulse 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes pulse { 50% { opacity: .3; transform: scale(1.18); } }
+    .pin { fill: var(--accent); filter: drop-shadow(0 0 8px var(--accent)); }
+    .plane { fill: var(--text); filter: drop-shadow(0 0 8px rgba(255,255,255,.75)); animation: plane-drift 5s ease-in-out infinite; }
+    @keyframes plane-drift { 0%, 100% { transform: translate(0, 0) rotate(-8deg); } 50% { transform: translate(6px, -5px) rotate(-8deg); } }
+    .city {
+      position: absolute; top: 50%; display: flex; align-items: center; gap: 10px;
+      transform: translateY(-50%);
+    }
+    .city-india { left: 7%; }
+    .city-germany { right: 7%; }
+    .city-icon {
+      width: 39px; height: 39px; display: grid; place-items: center;
+      border: 1px solid rgba(157, 255, 112, .25); border-radius: 13px;
+      background: var(--surface-raised); color: var(--accent);
+      box-shadow: 0 8px 24px rgba(0,0,0,.17);
+    }
+    .city-icon svg { width: 19px; height: 19px; }
+    .city-name { display: block; font-size: 12px; font-weight: 700; }
+    .city-country { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .scene-meta {
+      position: absolute; bottom: 16px; left: 50%; display: flex; align-items: center; gap: 7px;
+      color: var(--muted); font-size: 10px; white-space: nowrap; transform: translateX(-50%);
+    }
+    .scene-meta svg { width: 14px; height: 14px; color: var(--accent); }
+    .trust-strip { display: flex; align-items: center; gap: 10px; margin-top: 21px; color: var(--muted); font-size: 11px; }
+    .trust-icons { display: flex; }
+    .trust-icons span {
+      width: 25px; height: 25px; margin-left: -5px; display: grid; place-items: center;
+      border: 2px solid var(--page); border-radius: 50%; background: #243650;
+      color: #dbe7fb; font-size: 9px; font-weight: 700;
+    }
+    .trust-icons span:first-child { margin-left: 0; background: #465377; }
+    .trust-icons span:last-child { background: #526d5b; }
+    .trust-strip strong { color: var(--text); font-weight: 600; }
+
+    .login-wrap { position: relative; }
+    .login-card {
+      position: relative; padding: clamp(28px, 4vw, 42px);
+      border: 1px solid rgba(167, 188, 223, .17); border-radius: 25px;
+      background: var(--surface); box-shadow: var(--shadow);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    }
+    .card-glow {
+      position: absolute; top: -1px; left: 14%; width: 72%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: .75;
+    }
+    .welcome-icon {
+      width: 47px; height: 47px; display: grid; place-items: center;
+      border: 1px solid rgba(157, 255, 112, .25); border-radius: 15px;
+      background: rgba(157, 255, 112, .08); color: var(--accent);
+    }
+    .welcome-icon svg { width: 22px; height: 22px; }
+    h2 { margin: 23px 0 0; font: 700 27px/1.2 "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif; letter-spacing: -.035em; }
+    .card-intro { margin: 8px 0 27px; color: var(--muted); font-size: 13px; }
+    .field-label { display: block; margin-bottom: 9px; font-size: 12px; font-weight: 600; }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute; top: 50%; left: 14px; width: 17px; height: 17px;
+      color: var(--muted); transform: translateY(-50%); pointer-events: none;
+    }
+    .text-input {
+      width: 100%; height: 51px; padding: 0 14px 0 43px;
+      border: 1px solid var(--line); border-radius: 12px; outline: 0;
+      background: rgba(5, 10, 20, .24); color: var(--text); font-size: 13px;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    [data-theme="light"] .text-input { background: rgba(255,255,255,.7); }
+    .text-input::placeholder { color: #718099; }
+    .text-input:focus { border-color: rgba(157, 255, 112, .68); box-shadow: 0 0 0 3px var(--glow); }
+    .primary-button {
+      min-height: 52px; width: 100%; margin-top: 16px; display: flex; justify-content: center; align-items: center; gap: 10px;
+      border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-ink);
+      font-size: 13px; font-weight: 800; cursor: pointer;
+      box-shadow: 0 7px 25px var(--glow); transition: transform .2s, box-shadow .2s, filter .2s;
+    }
+    .primary-button:hover { transform: translateY(-2px); box-shadow: 0 10px 32px var(--glow); filter: brightness(1.04); }
+    .primary-button:active { transform: translateY(0); }
+    .primary-button svg { width: 17px; height: 17px; }
+    .auth-tabs { display: flex; gap: 6px; margin: 4px 0 10px; padding: 4px; border: 1px solid var(--line); border-radius: 11px; }
+    .consent {
+      display: flex; align-items: flex-start; gap: 9px; margin-top: 20px;
+      color: var(--muted); font-size: 10px; line-height: 1.5; cursor: pointer;
+    }
+    .consent input { width: 14px; height: 14px; margin: 1px 0 0; accent-color: var(--accent); }
+    .consent a { color: var(--text); text-decoration-color: rgba(157,255,112,.6); text-underline-offset: 2px; }
+    .inline-note { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 18px 0 0; color: var(--muted); font-size: 9px; }
+    .inline-note svg { width: 13px; height: 13px; }
+    .otp-view[hidden], .email-view[hidden] { display: none; }
+    .otp-hint { margin: -14px 0 20px; color: var(--muted); font-size: 12px; }
+    .back-button { display: inline-flex; align-items: center; gap: 6px; margin-top: 17px; padding: 0; border: 0; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; }
+    .back-button:hover { color: var(--text); }
+    .back-button svg { width: 14px; height: 14px; }
+    .message {
+      position: fixed; right: 24px; bottom: 24px; z-index: 5; max-width: min(390px, calc(100% - 32px));
+      padding: 14px 18px; border: 1px solid rgba(157,255,112,.36); border-radius: 14px;
+      background: var(--surface-raised); color: var(--text); font-size: 12px; line-height: 1.5;
+      box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); pointer-events: none;
+      transition: opacity .24s, transform .24s;
+    }
+    .message.show { opacity: 1; transform: translateY(0); }
+    footer { padding: 20px 0 26px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+    .footer-content { display: flex; justify-content: space-between; gap: 18px; }
+    .footer-note { display: flex; align-items: center; gap: 7px; }
+    .footer-note svg { width: 14px; height: 14px; color: var(--accent); flex: none; }
+    .footer-brand { white-space: nowrap; }
+    .stage-nav { width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .stage-nav::-webkit-scrollbar { display: none; }
+    .stage-list { min-width: 700px; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding: 13px 0; list-style: none; }
+    .stage-item { display: flex; flex: 1; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .stage-number { width: 25px; height: 25px; flex: none; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); font-size: 10px; }
+    .stage-item.active { color: var(--text); font-weight: 700; }
+    .stage-item.active .stage-number { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); box-shadow: 0 0 16px var(--glow); }
+    .stage-item.complete .stage-number { border-color: rgba(157,255,112,.4); color: var(--accent); }
+    .login-stage-wrap { padding-bottom: 6px; }
+    .auth-tabs { display: flex; gap: 6px; margin: 4px 0 10px; padding: 4px; border: 1px solid var(--line); border-radius: 11px; }
+    .auth-tabs button { min-height: 35px; flex: 1; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer; }
+    .auth-tabs button.active { background: var(--surface-raised); color: var(--text); }
+    .app-screen { min-height: 65vh; padding: 28px 0 60px; }
+    .app-screen[hidden] { display: none; }
+    .app-grid { display: grid; grid-template-columns: 184px minmax(0, 1fr) 225px; gap: 20px; align-items: start; }
+    .app-nav { position: sticky; top: 18px; display: grid; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
+    .app-nav-label { margin: 8px 9px 5px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .app-nav button { width: 100%; min-height: 38px; display: flex; align-items: center; gap: 9px; padding: 0 9px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); text-align: left; font-size: 10px; cursor: pointer; }
+    .app-nav button:hover, .app-nav button.active { background: rgba(157,255,112,.09); color: var(--text); }
+    .app-nav button.active { color: var(--accent); font-weight: 800; }
+    .app-nav .nav-icon { width: 18px; text-align: center; font-size: 14px; }
+    .app-nav .nav-child { padding-left: 32px; min-height: 31px; font-size: 9px; }
+    .app-main { min-width: 0; }
+    .activity-panel { position: sticky; top: 20px; padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .activity-panel h3 { margin: 0 0 15px; font-size: 13px; }
+    .activity-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+    .activity-list li { display: grid; grid-template-columns: 9px 1fr; gap: 9px; align-items: start; color: var(--muted); font-size: 10px; line-height: 1.4; }
+    .activity-dot { width: 8px; height: 8px; margin-top: 3px; border-radius: 50%; background: var(--line); }
+    .activity-list li.done .activity-dot, .activity-list li.active .activity-dot { background: var(--accent); box-shadow: 0 0 10px var(--glow); }
+    .activity-list time { display: block; margin-top: 3px; font-size: 9px; opacity: .75; }
+    .screen-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin: 12px 0 24px; }
+    .screen-head h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.1; letter-spacing: -.045em; }
+    .screen-head p { margin: 9px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .kicker { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .glass-card { border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: 0 15px 42px rgba(0,0,0,.12); }
+    .panel-pad { padding: clamp(18px, 3vw, 28px); }
+    .app-columns { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr); gap: 18px; align-items: start; }
+    .chat-card { padding: clamp(18px, 3vw, 28px); }
+    .chat-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--muted); font-size: 11px; }
+    .chat-progress { height: 5px; margin: 13px 0 22px; overflow: hidden; border-radius: 8px; background: var(--line); }
+    .chat-progress span { height: 100%; display: block; border-radius: inherit; background: var(--accent); transition: width .3s; }
+    .chat-question { min-height: 56px; margin: 0 0 18px; font: 700 21px/1.3 "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif; }
+    .choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .choice-grid.goal-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .choice-card { min-height: 68px; display: flex; align-items: center; gap: 11px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: rgba(120,140,170,.035); text-align: left; cursor: pointer; transition: .18s; }
+    .choice-card:hover, .choice-card.selected { border-color: var(--accent); background: rgba(157,255,112,.07); }
+    .choice-icon { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 11px; background: var(--surface-raised); font-size: 17px; }
+    .choice-title { font-size: 12px; font-weight: 700; }
+    .choice-sub { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .answer-control { min-height: 50px; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 12px; outline: 0; background: var(--surface-raised); color: var(--text); }
+    .answer-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+    .slider-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--muted); font-size: 11px; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+    .chat-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; }
+    .secondary-button, .next-button, .small-button { min-height: 43px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid var(--line); border-radius: 12px; background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; transition: .18s; }
+    .secondary-button:hover, .small-button:hover { border-color: var(--accent); }
+    .secondary-button:disabled { opacity: .4; cursor: not-allowed; }
+    .next-button { border: 0; background: var(--accent); color: var(--accent-ink); }
+    .next-button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .next-button:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    .next-button svg, .secondary-button svg, .small-button svg { width: 15px; height: 15px; }
+    .profile-peek { padding: 20px; }
+    .profile-peek h3 { margin: 0; font-size: 14px; }
+    .profile-peek-sub { margin: 6px 0 17px; color: var(--muted); font-size: 10px; }
+    .profile-ring { --progress: 0deg; width: 88px; height: 88px; display: grid; place-items: center; margin: 0 auto 15px; border-radius: 50%; background: conic-gradient(var(--accent) var(--progress), var(--line) 0); }
+    .profile-ring::before { width: 72px; height: 72px; display: grid; place-items: center; border-radius: inherit; background: var(--page); content: attr(data-percent); font-size: 17px; font-weight: 800; }
+    .profile-peek-list { display: grid; gap: 8px; }
+    .profile-peek-row { display: flex; justify-content: space-between; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 10px; }
+    .profile-peek-row span:first-child { color: var(--muted); }
+    .profile-peek-row strong { max-width: 60%; text-align: right; overflow-wrap: anywhere; }
+    .field-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .field-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 15px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .field-card span { display: block; color: var(--muted); font-size: 10px; }
+    .field-card strong { display: block; margin-top: 5px; font-size: 12px; }
+    .icon-button { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
+    .icon-button:hover { color: var(--accent); border-color: var(--accent); }
+    .icon-button svg { width: 15px; height: 15px; }
+    .bottom-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+    .editor-overlay { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(4,8,18,.72); backdrop-filter: blur(8px); }
+    .editor-overlay[hidden] { display: none; }
+    .editor-card { width: min(100%, 420px); padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 24px 80px rgba(0,0,0,.35); }
+    .editor-card h2 { margin: 0 0 16px; font-size: 18px; }
+    .editor-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+    .doc-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    .doc-card { position: relative; padding: 17px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); transition: border .2s; }
+    .nba-panel { margin: 14px 0; padding: 14px; border: 1px solid rgba(157,255,112,.2); border-radius: 13px; background: linear-gradient(140deg,rgba(157,255,112,.055),transparent 70%),var(--surface-raised); }
+    .nba-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+    .nba-heading strong { font-size: 11px; }
+    .nba-score { color: var(--accent); font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .nba-meter { height: 5px; margin-bottom: 10px; overflow: hidden; border-radius: 5px; background: var(--line); }
+    .nba-meter span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+    .nba-panel .nba-action { color: var(--text); font-size: 11px; line-height: 1.5; }
+    .nba-factors { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px 10px; margin: 10px 0; }
+    .nba-factor { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 9px; }
+    .nba-attention { margin-top: 9px; color: var(--amber); font-size: 9px; line-height: 1.55; }
+    .app-requirements { display: grid; gap: 7px; margin: 9px 0 12px; }
+    .app-requirement { display: flex; align-items: flex-start; gap: 8px; color: var(--text); font-size: 10px; line-height: 1.45; }
+    .app-requirement input { width: 15px; height: 15px; flex: none; margin: 0; accent-color: var(--accent); }
+    .app-deadline { margin-top: 12px; }
+    .app-guidance-note { margin: 8px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+    .doc-card.dragover { border-color: var(--accent); background: rgba(157,255,112,.07); }
+    .doc-card-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .doc-symbol { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 13px; background: var(--surface-raised); font-size: 19px; }
+    .doc-card h3 { margin: 12px 0 4px; font-size: 13px; }
+    .doc-card p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .doc-file { margin-top: 9px !important; color: var(--text) !important; overflow-wrap: anywhere; }
+    .doc-status { padding: 5px 7px; border-radius: 7px; background: rgba(139,153,177,.10); color: var(--muted); font-size: 9px; white-space: nowrap; }
+    .doc-status.good { color: var(--accent); background: rgba(157,255,112,.10); }
+    .doc-status.warn { color: #ffc36d; background: rgba(255,195,109,.12); }
+    .doc-progress { height: 4px; margin-top: 12px; overflow: hidden; border-radius: 5px; background: var(--line); }
+    .doc-progress span { height: 100%; display: block; background: var(--accent); transition: width .3s; }
+    .upload-button { position: relative; min-height: 38px; margin-top: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--text); font-size: 10px; font-weight: 700; cursor: pointer; }
+    .upload-button:hover { border-color: var(--accent); }
+    .upload-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .scan-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 11px; }
+    .scan-status { color: var(--muted); }
+    .scan-sweep { height: 3px; margin-top: 10px; overflow: hidden; border-radius: 5px; background: var(--line); }
+    .scan-sweep span { height: 100%; display: block; background: var(--accent); transition: width .5s; }
+    .score-layout { display: grid; grid-template-columns: 250px minmax(0,1fr); gap: 18px; }
+    .score-card { display: grid; place-items: center; padding: 22px; text-align: center; }
+    .score-ring { --score: 0deg; width: 185px; height: 185px; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(var(--accent) var(--score), var(--line) 0); box-shadow: 0 0 35px var(--glow); transition: background .35s; }
+    .score-ring::before { width: 151px; height: 151px; display: grid; align-content: center; border-radius: inherit; background: var(--page); content: attr(data-score); font-size: 48px; font-weight: 800; }
+    .score-ring::after { position: absolute; content: ""; }
+    .score-caption { margin: 12px 0 0; color: var(--muted); font-size: 10px; }
+    .tier-badge { margin-top: 9px; padding: 6px 10px; border-radius: 8px; background: rgba(157,255,112,.11); color: var(--accent); font-size: 10px; font-weight: 700; }
+    .score-detail { padding: 20px; }
+    .score-detail h3 { margin: 0 0 16px; font-size: 13px; }
+    .score-row { margin: 13px 0; }
+    .score-row-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-size: 10px; }
+    .score-row-head span:last-child { color: var(--muted); }
+    .score-bar { height: 6px; overflow: hidden; border-radius: 6px; background: var(--line); }
+    .score-bar span { height: 100%; display: block; border-radius: inherit; background: var(--accent); }
+    .whatif-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+    .whatif-control { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .whatif-control label { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; }
+    .whatif-control output { color: var(--accent); font-weight: 700; }
+    .route-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 13px; }
+    .route-card { position: relative; padding: 19px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+    .route-card.best { border-color: rgba(157,255,112,.65); box-shadow: 0 0 28px var(--glow); }
+    .best-badge { display: inline-block; margin-bottom: 9px; padding: 5px 8px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); font-size: 9px; font-weight: 800; }
+    .route-card h3 { margin: 0; font-size: 17px; }
+    .fit-ring { --fit: 0deg; width: 75px; height: 75px; display: grid; place-items: center; margin: 14px 0; border-radius: 50%; background: conic-gradient(var(--accent) var(--fit), var(--line) 0); }
+    .fit-ring::before { width: 59px; height: 59px; display: grid; place-items: center; border-radius: 50%; background: var(--page); content: attr(data-fit); font-size: 15px; font-weight: 800; }
+    .route-list { display: grid; gap: 7px; margin: 13px 0; padding: 0; list-style: none; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .route-list li::before { margin-right: 7px; color: var(--accent); content: "✓"; font-weight: 900; }
+    .route-list.gaps li::before { color: #ffbf63; content: "△"; }
+    .route-fit-label { color: var(--muted); font-size: 10px; }
+    .bridge-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 16px 18px; border: 1px solid rgba(123,156,255,.28); border-radius: 15px; background: rgba(123,156,255,.06); }
+    .bridge-card strong { font-size: 12px; }
+    .bridge-card p { margin: 5px 0 0; color: var(--muted); font-size: 10px; }
+    .timeline { position: relative; display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+    .timeline::before { position: absolute; top: 16px; bottom: 20px; left: 14px; width: 2px; background: linear-gradient(var(--accent), var(--line)); content: ""; }
+    .timeline-item { position: relative; display: grid; grid-template-columns: 30px minmax(0,1fr) auto; gap: 12px; align-items: start; padding: 0 0 18px; }
+    .timeline-dot { position: relative; z-index: 1; width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--page); font-size: 12px; }
+    .timeline-item.do-now .timeline-dot { border-color: #ffbf63; box-shadow: 0 0 12px rgba(255,191,99,.25); }
+    .timeline-item h3 { margin: 3px 0; font-size: 12px; }
+    .timeline-item p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.4; }
+    .timeline-date { color: var(--muted); font-size: 9px; white-space: nowrap; }
+    .do-now-label { color: #ffbf63; font-size: 9px; font-weight: 800; }
+    .roadmap-columns { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: 15px; }
+    .week-card { padding: 19px; }
+    .week-card h3 { margin: 0; font-size: 14px; }
+    .week-card ol { display: grid; gap: 13px; margin: 15px 0 0; padding-left: 18px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .countdown { margin-top: 14px; padding: 13px; border-radius: 12px; background: rgba(157,255,112,.07); color: var(--accent); font-size: 12px; font-weight: 800; text-align: center; }
+    .ready-hero { padding: 24px; border: 1px solid rgba(157,255,112,.4); border-radius: 20px; background: radial-gradient(circle at 50% 0, rgba(157,255,112,.12), transparent 70%), var(--surface); text-align: center; }
+    .ready-check { width: 68px; height: 68px; display: grid; place-items: center; margin: 0 auto 12px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); box-shadow: 0 0 30px var(--glow); font-size: 31px; }
+    .ready-hero h2 { margin: 0; font-size: 26px; }
+    .ready-hero p { margin: 7px 0 0; color: var(--muted); font-size: 11px; }
+    .ready-layout { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 14px; }
+    .ready-panel { padding: 19px; }
+    .ready-panel h3 { margin: 0 0 13px; font-size: 13px; }
+    .check-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 10px; }
+    .check-list li::before { display: inline-grid; width: 17px; height: 17px; margin-right: 8px; place-items: center; border-radius: 50%; background: rgba(157,255,112,.1); color: var(--accent); content: "✓"; font-weight: 800; }
+    .summary-line { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 10px; }
+    .summary-line span { color: var(--muted); }
+    .summary-line strong { text-align: right; }
+    .message-preview { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--page); font-size: 10px; line-height: 1.55; }
+    .json-output { width: 100%; min-height: 110px; margin-top: 10px; padding: 10px; resize: vertical; border: 1px solid var(--line); border-radius: 11px; background: var(--page); color: var(--muted); font: 10px/1.5 ui-monospace, Consolas, monospace; }
+    .fraud-card { margin-top: 14px; padding: 17px; border: 1px solid rgba(255,191,99,.3); border-radius: 15px; background: rgba(255,191,99,.055); }
+    .fraud-card h3 { margin: 0 0 8px; color: #ffbf63; font-size: 12px; }
+    .fraud-card p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .indicative-note { margin: 14px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+    .slide-in { animation: slide-in .28s ease both; }
+    @keyframes slide-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .cv-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(390px, .9fr); gap: 18px; align-items: start; }
+    .cv-editor { padding: clamp(16px, 2.5vw, 24px); }
+    .cv-editor-section { padding: 0 0 20px; margin: 0 0 20px; border-bottom: 1px solid var(--line); }
+    .cv-editor-section:last-of-type { margin-bottom: 12px; }
+    .cv-editor-heading, .cv-entry-heading, .cv-item-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .cv-editor-heading { margin-bottom: 12px; }
+    .cv-editor-heading h2 { margin: 0; font-size: 16px; }
+    .cv-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0 12px; }
+    .cv-field { display: block; margin: 0 0 12px; }
+    .cv-field .answer-control { margin-top: 6px; }
+    .cv-field-wide { grid-column: 1 / -1; }
+    .cv-textarea { min-height: 82px; resize: vertical; }
+    .cv-entry { padding: 13px; margin: 11px 0; border: 1px solid var(--line); border-radius: 12px; background: rgba(120,140,170,.035); }
+    .cv-entry-heading { margin-bottom: 12px; font-size: 11px; }
+    .cv-skill-entry { display: grid; grid-template-columns: minmax(130px,.7fr) minmax(0,1fr) auto; gap: 10px; align-items: end; }
+    .cv-skill-entry .cv-field { margin: 0; }
+    .cv-check { display: flex; gap: 9px; align-items: center; margin: 12px 0; font-size: 11px; }
+    .cv-check input { accent-color: var(--accent); }
+    .cv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .cv-actions .answer-control { min-width: 0; }
+    .cv-preview-column { min-width: 0; }
+    .cv-toolbar { position: sticky; top: 12px; z-index: 2; padding: 16px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface-raised); }
+    .cv-target-panel { padding: 12px; margin-top: 10px; border-radius: 11px; background: var(--page); font-size: 11px; }
+    .cv-target-panel p { margin: 6px 0 0; color: var(--muted); line-height: 1.5; }
+    .cv-paper-wrap { overflow: auto; padding: 13px; border-radius: 15px; background: rgba(0,0,0,.18); }
+    .cv-paper { box-sizing: border-box; width: min(100%, 210mm); min-height: 297mm; padding: 18mm 17mm; margin: 0 auto; color: #172033; background: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.25); font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.38; overflow-wrap: anywhere; }
+    .cv-paper h1 { max-width: none; margin: 0; color: #111827; font-size: 24pt; line-height: 1.12; letter-spacing: -.025em; }
+    .cv-paper .cv-title { margin: 6px 0 0; color: #40536b; font-size: 11pt; font-weight: 600; }
+    .cv-contact { margin: 9px 0 0; color: #465466; font-size: 8.5pt; line-height: 1.5; }
+    .cv-section { margin-top: 17px; }
+    .cv-section h2 { padding-bottom: 4px; margin: 0 0 7px; border-bottom: 1px solid #aeb8c5; color: #18263a; font-size: 10pt; font-weight: 700; letter-spacing: .055em; text-transform: uppercase; }
+    .cv-summary, .cv-item p { margin: 3px 0 0; color: #283548; font-size: 9pt; line-height: 1.42; }
+    .cv-item { margin: 0 0 9px; break-inside: avoid; }
+    .cv-item-head { align-items: baseline; font-size: 9pt; }
+    .cv-date { flex: none; color: #526175; font-size: 8pt; }
+    .cv-skill, .cv-compact { margin: 3px 0; color: #283548; font-size: 9pt; }
+    .cv-links { color: #526175 !important; font-size: 8pt !important; }
+    .cv-template-modern .cv-header { padding-bottom: 10px; border-bottom: 3px solid #345b7e; }
+    .cv-template-modern .cv-section h2 { color: #345b7e; border-bottom-color: #8da3b7; }
+    .cv-template-european .cv-header { padding-bottom: 10px; border-bottom: 1px solid #708096; }
+    .cv-template-european .cv-section { margin-top: 14px; }
+    .cv-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .cv-suggestion { padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; color: var(--text); background: var(--surface-raised); font-size: 10px; cursor: pointer; }
+    .cv-analysis-panel { padding: 11px; margin-top: 10px; border-radius: 11px; background: var(--page); font-size: 10px; }
+    .cv-analysis-panel[hidden] { display: none; }
+    .cv-analysis-panel ul { padding-left: 17px; margin: 7px 0; color: var(--muted); line-height: 1.5; }
+    .cv-check-row { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; }
+    .cv-match-terms { color: var(--muted); line-height: 1.5; }
+    .cv-application-check { padding: 10px; margin-top: 10px; border: 1px solid var(--line); border-radius: 11px; background: rgba(120,140,170,.035); font-size: 10px; }
+    .cv-export-actions { margin-top: 11px; }
+    @media (max-width: 1100px) {
+      .cv-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      .shell { width: min(680px, calc(100% - 40px)); }
+      .topbar { height: 77px; }
+      main { padding: 42px 0; }
+      .layout { grid-template-columns: 1fr; gap: 30px; }
+      .journey { min-height: auto; }
+      h1 { max-width: 650px; font-size: clamp(43px, 8vw, 60px); }
+      .route-scene { height: 260px; margin-top: 24px; }
+      .trust-strip { margin-top: 16px; }
+      .login-wrap { max-width: 540px; width: 100%; margin: 0 auto; }
+      .app-grid { grid-template-columns: 1fr; }
+      .app-nav { position: static; display: flex; gap: 3px; overflow-x: auto; padding: 7px; scrollbar-width: none; }
+      .app-nav::-webkit-scrollbar { display: none; }
+      .app-nav-label { display: none; }
+      .app-nav button { width: auto; flex: none; padding: 0 10px; }
+      .app-nav .nav-child { padding-left: 10px; }
+      .activity-panel { display: none; }
+      .app-screen { padding-top: 18px; }
+      .cv-layout { grid-template-columns: 1fr; }
+      .cv-toolbar { position: static; }
+    }
+    @media (max-width: 520px) {
+      .shell { width: calc(100% - 32px); }
+      .topbar { height: 70px; }
+      .brand-mark { width: 35px; height: 35px; }
+      .brand-name { font-size: 15px; }
+      .brand-caption { font-size: 8px; }
+      .tool-button { min-height: 37px; padding: 0 10px; }
+      .tool-button .toggle-label { font-size: 11px; }
+      .tool-button svg { width: 15px; height: 15px; }
+      main { padding: 34px 0 32px; }
+      .layout { gap: 25px; }
+      .eyebrow { margin-bottom: 15px; font-size: 9px; }
+      h1 { font-size: clamp(39px, 11vw, 52px); }
+      .hero-subtitle { margin-top: 13px; font-size: 13px; }
+      .route-scene { height: 212px; margin-top: 21px; border-radius: 19px; }
+      .city-india { left: 5%; }
+      .city-germany { right: 5%; }
+      .city-icon { width: 33px; height: 33px; border-radius: 11px; }
+      .city-name { font-size: 10px; }
+      .city-country { font-size: 9px; }
+      .scene-meta { bottom: 12px; font-size: 9px; }
+      .trust-strip { font-size: 10px; }
+      .login-card { padding: 25px 21px; border-radius: 21px; }
+      h2 { margin-top: 18px; font-size: 24px; }
+      .card-intro { margin-bottom: 22px; font-size: 12px; }
+      .footer-content { flex-direction: column; }
+      .footer-note { align-items: flex-start; }
+      .message { right: 16px; bottom: 16px; }
+      .stage-list { min-width: 680px; }
+      .stage-item { font-size: 9px; }
+      .choice-grid.goal-grid, .route-grid { grid-template-columns: 1fr; }
+      .choice-grid.goal-grid .choice-card { min-height: 56px; }
+      .app-columns, .score-layout, .roadmap-columns { grid-template-columns: 1fr; }
+      .cv-layout { grid-template-columns: 1fr; }
+      .cv-form-grid { grid-template-columns: 1fr; }
+      .cv-field-wide { grid-column: auto; }
+      .cv-paper { min-height: 0; padding: 14mm 12mm; }
+      .cv-skill-entry { grid-template-columns: 1fr; }
+      .field-list, .doc-grid, .ready-layout { grid-template-columns: 1fr; }
+      .whatif-grid { grid-template-columns: 1fr; }
+      .screen-head { margin-bottom: 18px; }
+      .chat-question { font-size: 18px; }
+      .timeline-item { grid-template-columns: 30px minmax(0,1fr); }
+      .timeline-date { grid-column: 2; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+    @media print {
+      @page { size: A4; margin: 0; }
+      html, body { width: 210mm; min-height: 297mm; background: #fff !important; }
+      body * { visibility: hidden !important; }
+      .cv-paper, .cv-paper * { visibility: visible !important; }
+      .cv-paper { position: fixed; inset: 0 auto auto 0; width: 210mm !important; min-height: 297mm; padding: 18mm 17mm !important; margin: 0 !important; box-shadow: none !important; overflow: visible !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .cv-paper-wrap { overflow: visible; padding: 0; background: #fff !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar shell">
+    <a class="brand" href="#" aria-label="Journova AI home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 16.5 9 7l3 5 2.2-3.5L20 19M4 16.5c2.3-1.1 4-.8 5.6.2 1.7 1.1 3.3 1.4 5.1.2 1.7-1.1 3.2-1.5 5.3-.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="1.3" fill="currentColor"/></svg>
+      </span>
+      <span><span class="brand-name">JOURNOVA<span> AI</span></span><span class="brand-caption">YOUR GERMANY JOURNEY</span></span>
+    </a>
+    <div class="toolbar">
+      <button class="tool-button" id="languageToggle" type="button" aria-label="Switch language">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 12h17M12 3c2.2 2.4 3.2 5.4 3.2 9s-1 6.6-3.2 9c-2.2-2.4-3.2-5.4-3.2-9S9.8 5.4 12 3Z" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span class="toggle-label" id="languageLabel">EN</span>
+      </button>
+      <button class="tool-button" id="themeToggle" type="button" aria-label="Switch to light mode">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 15.2A8 8 0 0 1 8.8 4a8.2 8.2 0 1 0 11.2 11.2Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="toggle-label" id="themeLabel">Dark</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="shell login-stage-wrap" aria-label="Your journey stages">
+    <ol class="stage-list" id="stageTracker"></ol>
+  </nav>
+
+  <main class="shell" id="loginScreen">
+    <div class="layout">
+      <section class="journey" aria-labelledby="heroTitle">
+        <p class="eyebrow" data-en="A brighter future starts here" data-hi="बेहतर भविष्य की शुरुआत यहीं से">A brighter future starts here</p>
+        <h1 id="heroTitle" data-en-html="Your Journey.<br><span class='highlight'>Intelligently</span><br>Evolved." data-hi-html="आपका सफ़र।<br><span class='highlight'>समझदारी से</span><br>आगे बढ़े।">Your Journey.<br><span class="highlight">Intelligently</span><br>Evolved.</h1>
+        <p class="hero-subtitle" data-en-html="From India to Germany, find your way forward.<br>Your next chapter, made clearer." data-hi-html="भारत से जर्मनी तक, अपना रास्ता खोजें।<br>आपका अगला कदम, अब और स्पष्ट।">From India to Germany, find your way forward.<br>Your next chapter, made clearer.</p>
+
+        <div class="route-scene" role="img" aria-label="Glowing journey route from India to Germany">
+          <div class="scene-grid"></div>
+          <svg class="route-svg" viewBox="0 0 600 285" preserveAspectRatio="none" aria-hidden="true">
+            <path class="route-base" d="M87 151 C162 235 246 65 319 130 S433 201 514 107"/>
+            <path class="route-glow" d="M87 151 C162 235 246 65 319 130 S433 201 514 107"/>
+            <circle class="map-halo" cx="87" cy="151" r="18"/><circle class="pin" cx="87" cy="151" r="4"/>
+            <circle class="map-halo" cx="514" cy="107" r="18"/><circle class="pin" cx="514" cy="107" r="4"/>
+            <g class="plane" transform="translate(314 128) rotate(-18)">
+              <path d="M0-9 2-1 11 4 10 6 2 4 1 11-1 11-2 4-10 6-11 4-2-1-1-9Z"/>
+            </g>
+          </svg>
+          <div class="city city-india">
+            <span class="city-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20h16M6 20V9l6-4 6 4v11M9 12h.01M15 12h.01M9 16h.01M15 16h.01M12 20v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span><span class="city-name" data-en="INDIA" data-hi="भारत">INDIA</span><span class="city-country" data-en="Your starting point" data-hi="आपकी शुरुआत">Your starting point</span></span>
+          </div>
+          <div class="city city-germany">
+            <span><span class="city-name" data-en="GERMANY" data-hi="जर्मनी">GERMANY</span><span class="city-country" data-en="Your next chapter" data-hi="आपका अगला कदम">Your next chapter</span></span>
+            <span class="city-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 20h18M5 20V9h4v11m2 0V4h4v16m2 0v-8h3v8M7 12h.01M7 16h.01M13 8h.01M13 12h.01M13 16h.01M18 15h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="scene-meta"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v18m0-18 6 5m-6-5L6 8m6 13 6-5m-6 5-6-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-en="One guided journey. Your next big move." data-hi="एक मार्गदर्शित सफ़र। आपका अगला बड़ा कदम।">One guided journey. Your next big move.</span></div>
+        </div>
+
+        <div class="trust-strip">
+          <span class="trust-icons" aria-hidden="true"><span>P</span><span>A</span><span>R</span></span>
+          <span><strong data-en="Built around you" data-hi="आपके लिए बनाया गया">Built around you</strong> · <span data-en="study, Ausbildung & work" data-hi="पढ़ाई, Ausbildung और काम">study, Ausbildung &amp; work</span></span>
+        </div>
+      </section>
+
+      <section class="login-wrap" aria-label="Sign in">
+        <div class="login-card">
+          <span class="card-glow" aria-hidden="true"></span>
+          <div class="email-view" id="emailView">
+            <div class="welcome-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Z" stroke="currentColor" stroke-width="1.6"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="auth-tabs" role="tablist" aria-label="Account access"><button class="active" type="button" data-auth-intent="login" role="tab" aria-selected="true">Login</button><button type="button" data-auth-intent="register" role="tab" aria-selected="false">Register</button></div>
+            <h2 data-en="Your next chapter starts here." data-hi="आपका अगला अध्याय यहीं से शुरू होता है।">Your next chapter starts here.</h2>
+            <p class="card-intro" data-en="We'll email you a one-time code to continue." data-hi="आगे बढ़ने के लिए हम आपको ईमेल पर वन-टाइम कोड भेजेंगे।">We'll email you a one-time code to continue.</p>
+            <form id="emailForm" novalidate>
+              <label class="field-label" for="emailInput" data-en="Email address" data-hi="ईमेल पता">Email address</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <input class="text-input" id="emailInput" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+              </div>
+              <button class="primary-button" type="submit"><span data-en="Continue" data-hi="आगे बढ़ें">Continue</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </form>
+            <label class="consent"><input id="consentCheck" type="checkbox"><span><span data-en="I agree to share my details with" data-hi="मैं अपनी जानकारी साझा करने के लिए सहमत हूँ">I agree to share my details with</span> Educaro Deutschland.</span></label>
+            <p class="inline-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span data-en="Your journey is saved to your account." data-hi="आपका सफ़र आपके खाते में सहेजा जाता है।">Your journey is saved to your account.</span></p>
+          </div>
+
+          <div class="otp-view" id="otpView" hidden>
+            <div class="welcome-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.2 17 19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <h2 data-en="Check your inbox." data-hi="अपना इनबॉक्स देखें।">Check your inbox.</h2>
+            <p class="card-intro" data-en="Enter the 6-digit code sent to your email." data-hi="ईमेल पर भेजा गया 6 अंकों का कोड दर्ज करें।">Enter the 6-digit code sent to your email.</p>
+            <form id="otpForm" novalidate>
+              <label class="field-label" for="otpInput" data-en="One-time code" data-hi="वन-टाइम कोड">One-time code</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 12h.01M12 12h.01M16 12h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                <input class="text-input" id="otpInput" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="• • • • • •" aria-describedby="otpHint" required>
+              </div>
+              <p class="otp-hint" id="otpHint"><span data-en="Code expires in 10 minutes." data-hi="कोड 10 मिनट में समाप्त हो जाएगा।">Code expires in 10 minutes.</span></p>
+              <button class="primary-button" type="submit"><span data-en="Verify & continue" data-hi="सत्यापित करें और आगे बढ़ें">Verify &amp; continue</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </form>
+              <button class="back-button" id="resendCode" type="button">Resend code</button>
+            <button class="back-button" id="backToEmail" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m6 6-6-6 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-en="Use a different email" data-hi="दूसरा ईमेल इस्तेमाल करें">Use a different email</span></button>
+            <p class="inline-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span data-en="A code is sent only after you request it." data-hi="आपके अनुरोध के बाद ही कोड भेजा जाता है।">A code is sent only after you request it.</span></p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <main class="shell app-screen" id="appScreen" hidden>
+    <div class="app-grid">
+      <nav class="app-nav" id="appNavigation" aria-label="Main navigation"></nav>
+      <section class="app-main" id="screenContent" aria-live="polite"></section>
+      <aside class="activity-panel" aria-label="Agent activity">
+        <h3>Agent activity</h3>
+        <ol class="activity-list" id="activityLog"></ol>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="shell footer-content">
+      <span class="footer-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.4 3.2 7.6 7.5 9.5 4.3-1.9 7.5-5.1 7.5-9.5V6L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-en="Your profile and documents are stored in the app. Only sign-in codes use email." data-hi="आपकी प्रोफ़ाइल और दस्तावेज़ ऐप में सहेजे जाते हैं। ईमेल का उपयोग केवल साइन-इन कोड के लिए होता है।">Your profile and documents are stored in the app. Only sign-in codes use email.</span></span>
+      <span class="footer-brand">© 2026 Educaro Deutschland GmbH</span>
+    </div>
+  </footer>
+  <div class="message" id="toast" role="status" aria-live="polite"></div>
+  <div class="editor-overlay" id="editorOverlay" hidden></div>
+
+  <script src="/cv-builder.js"></script>
+  <script>
+    const root = document.documentElement;
+    const themeToggle = document.getElementById("themeToggle");
+    const themeLabel = document.getElementById("themeLabel");
+    const themeIcon = document.getElementById("themeIcon");
+    const languageToggle = document.getElementById("languageToggle");
+    const languageLabel = document.getElementById("languageLabel");
+    const loginScreen = document.getElementById("loginScreen");
+    const appScreen = document.getElementById("appScreen");
+    const screenContent = document.getElementById("screenContent");
+    const toast = document.getElementById("toast");
+    const editorOverlay = document.getElementById("editorOverlay");
+    const stages = ["Intake", "Profile", "Documents", "Verify", "Score", "Pathway", "Roadmap", "Ready"];
+    const storageKey = "journova-applicant-v1";
+    const profileFields = [
+      ["goal", "Goal"], ["field", "Field"], ["education", "Education"], ["marks", "Marks / GPA"],
+      ["english", "English"], ["german", "German"], ["experience", "Experience"], ["age", "Age"],
+      ["funds", "Available funds"], ["startDate", "Target start"]
+    ];
+    const initialProfile = Object.fromEntries(profileFields.map(([key]) => [key, ""]));
+    const translations = {
+      "Intake": "शुरुआत", "Profile": "प्रोफ़ाइल", "Documents": "दस्तावेज़", "Verify": "जाँच", "Score": "स्कोर", "Pathway": "रास्ता", "Roadmap": "योजना", "Ready": "तैयार",
+      "Your next chapter starts here.": "आपका अगला अध्याय यहीं से शुरू होता है।",
+      "Enter your email to begin your Germany journey.": "जर्मनी का सफ़र शुरू करने के लिए अपना ईमेल दर्ज करें।",
+      "Continue": "आगे बढ़ें", "Your Germany journey": "जर्मनी का आपका सफ़र",
+      "What is your goal?": "आपका लक्ष्य क्या है?", "Which field interests you most?": "आपकी रुचि किस क्षेत्र में है?",
+      "What is your highest education?": "आपकी उच्चतम शिक्षा क्या है?", "What were your marks or GPA?": "आपके अंक या GPA क्या थे?",
+      "What is your English level?": "आपका अंग्रेज़ी स्तर क्या है?", "What is your German level?": "आपका जर्मन स्तर क्या है?",
+      "How much relevant experience do you have?": "आपके पास कितना प्रासंगिक अनुभव है?", "How old are you?": "आपकी उम्र क्या है?",
+      "How much can you invest in your journey?": "आप अपनी यात्रा के लिए कितनी राशि दे सकते हैं?",
+      "When would you like to start?": "आप कब शुरू करना चाहते हैं?", "Question": "प्रश्न",
+      "Study": "पढ़ाई", "Ausbildung": "व्यावसायिक प्रशिक्षण", "Job": "नौकरी",
+      "Your applicant profile": "आपकी आवेदक प्रोफ़ाइल", "Edit each answer as you go.": "अपने उत्तर संपादित करें।",
+      "Continue to profile": "प्रोफ़ाइल पर जाएँ", "Save and continue": "सहेजें और आगे बढ़ें",
+      "Upload documents": "दस्तावेज़ अपलोड करें", "Check my documents": "मेरे दस्तावेज़ जाँचें",
+      "Continue to verification": "जाँच पर जाएँ", "Run document checks": "दस्तावेज़ जाँचें",
+      "Continue to assessment": "मूल्यांकन पर जाएँ", "Continue to routes": "रास्ते देखें",
+      "Choose this route": "यह रास्ता चुनें", "Build my roadmap": "मेरी योजना बनाएँ",
+      "Continue to application ready": "आवेदन तैयारी पर जाएँ", "Copy JSON": "JSON कॉपी करें",
+      "Download profile": "प्रोफ़ाइल डाउनलोड करें", "Send to Educaro counsellor": "Educaro सलाहकार को भेजें",
+      "What moves your score most": "आपके स्कोर को सबसे ज़्यादा क्या बढ़ाएगा",
+      "This week": "इस सप्ताह", "Application Ready": "आवेदन तैयार",
+      "Before you pay anyone": "किसी को भुगतान करने से पहले",
+      "Bridge: build your German first": "ब्रिज: पहले जर्मन सीखें",
+      "Your documents stay on this device.": "आपके दस्तावेज़ इसी डिवाइस पर रहते हैं।",
+      "Indicative guidance only. Confirm requirements with official German authorities and institutions.": "यह केवल सांकेतिक मार्गदर्शन है। आवश्यकताओं की पुष्टि जर्मनी के आधिकारिक स्रोतों से करें।"
+    };
+    let language = "en";
+    let toastTimer;
+    let questionIndex = 0;
+    let scanRunning = false;
+    let files = new Map();
+    let profile = { ...initialProfile };
+    let consent = false;
+    let currentScreen = "login";
+    let selectedRoute = "";
+    let activity = {};
+    let authIntent = "login";
+    let applications = [];
+    let serverAssessment = null;
+    let serverPathways = null;
+    let serverRoadmap = null;
+    let assistantAnswer = "";
+    let cvData = window.JournovaCvBuilder.normalize({});
+    let cvTargetApplicationId = "";
+    let saveQueue = Promise.resolve();
+    let saveTimer;
+    let documentRefreshPromise;
+    let documentRefreshTimer;
+    let applicationRefreshTimer;
+    let applicationRefreshPromise;
+
+    async function api(url, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      if (options.body && !(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
+      const response = await fetch(url, { credentials: "same-origin", ...options, headers });
+      const result = response.status === 204 ? {} : await response.json();
+      if (!response.ok) throw new Error(result.error || `Request failed (${response.status}).`);
+      return result;
+    }
+
+    const navigationGroups = [
+      { label: "Workspace", items: [["dashboard", "⌂", "Home"], ["intake", "✦", "AI Onboarding"], ["profile", "◉", "My Profile"], ["documents", "▤", "Documents"], ["assessment", "◌", "Qualification Check"]] },
+      { label: "Explore", items: [["opportunities", "⌕", "Opportunities"], ["opportunities-study", "·", "Study", true], ["opportunities-ausbildung", "·", "Ausbildung", true], ["opportunities-job", "·", "Jobs", true], ["roadmap", "↗", "My Journey"], ["applications", "▣", "Applications"]] },
+      { label: "Tools", items: [["cv", "▧", "CV Builder"], ["assistant", "✧", "AI Assistant"], ["settings", "⚙", "Settings"]] }
+    ];
+
+    function renderNavigation() {
+      const container = document.getElementById("appNavigation");
+      if (!container) return;
+      container.innerHTML = navigationGroups.map((group) =>
+        `<span class="app-nav-label">${escapeHtml(group.label)}</span>${group.items.map(([page, icon, label, child]) =>
+          `<button class="${child ? "nav-child " : ""}${currentScreen === page || (page === "opportunities" && currentScreen.startsWith("opportunities")) ? "active" : ""}" type="button" data-nav="${page}"><span class="nav-icon">${icon}</span><span>${escapeHtml(label)}</span></button>`
+        ).join("")}`
+      ).join("") + `<span class="app-nav-label">Account</span><button type="button" data-nav="logout"><span class="nav-icon">↪</span><span>Logout</span></button>`;
+    }
+
+    const questions = [
+      { key: "goal", type: "choice", title: "What is your goal?", titleHi: "आपका लक्ष्य क्या है?", options: [["Study", "📚", "University degree"], ["Ausbildung", "🛠️", "Vocational training"], ["Job", "💼", "Work in Germany"]] },
+      { key: "field", type: "select", title: "Which field interests you most?", titleHi: "आपकी रुचि किस क्षेत्र में है?", options: ["Information Technology", "Engineering", "Healthcare", "Business", "Hospitality", "Skilled trades", "Other"] },
+      { key: "education", type: "select", title: "What is your highest education?", titleHi: "आपकी उच्चतम शिक्षा क्या है?", options: ["High school", "Diploma", "Bachelor's degree", "Master's degree", "Vocational qualification", "Other"] },
+      { key: "marks", type: "range", title: "What were your marks or GPA?", titleHi: "आपके अंक या GPA क्या थे?", min: 0, max: 100, step: 1, unit: "%" },
+      { key: "english", type: "choice", title: "What is your English level?", titleHi: "आपका अंग्रेज़ी स्तर क्या है?", options: [["A1", "🌱", "Beginner"], ["A2", "🌿", "Elementary"], ["B1", "🌼", "Intermediate"], ["B2", "🌳", "Upper intermediate"], ["C1", "✨", "Advanced"], ["C2", "🏆", "Proficient"]] },
+      { key: "german", type: "choice", title: "What is your German level?", titleHi: "आपका जर्मन स्तर क्या है?", options: [["None", "◌", "Not started"], ["A1", "🌱", "Beginner"], ["A2", "🌿", "Elementary"], ["B1", "🌼", "Intermediate"], ["B2", "🌳", "Upper intermediate"], ["C1", "✨", "Advanced"]] },
+      { key: "experience", type: "range", title: "How much relevant experience do you have?", titleHi: "आपके पास कितना प्रासंगिक अनुभव है?", min: 0, max: 15, step: 1, unit: "years" },
+      { key: "age", type: "range", title: "How old are you?", titleHi: "आपकी उम्र क्या है?", min: 18, max: 55, step: 1, unit: "years" },
+      { key: "funds", type: "range", title: "How much can you invest in your journey?", titleHi: "आप अपनी यात्रा के लिए कितनी राशि दे सकते हैं?", min: 0, max: 50000, step: 500, unit: "€" },
+      { key: "startDate", type: "date", title: "When would you like to start?", titleHi: "आप कब शुरू करना चाहते हैं?" }
+    ];
+    const docDefinitions = [
+      { id: "passport", title: "Passport", icon: "🛂", tip: "Photo and details page" },
+      { id: "academic", title: "Marksheets / degree", icon: "🎓", tip: "Latest marksheets or degree" },
+      { id: "cv", title: "CV", icon: "🧾", tip: "Current, dated CV" },
+      { id: "motivation", title: "Motivation letter", icon: "✍️", tip: "A short letter about your goals" },
+      { id: "language", title: "Language certificate", icon: "🌐", tip: "English or German certificate" },
+      { id: "aps", title: "APS certificate", icon: "✅", tip: "Required for many study applicants", only: "Study" },
+      { id: "experience", title: "Experience letters", icon: "🏢", tip: "Employer references or work proof", only: "Job" }
+    ];
+    const routeData = [
+      { id: "Study", icon: "🎓", description: "University and higher education" },
+      { id: "Ausbildung", icon: "🛠️", description: "Earn while you learn" },
+      { id: "Job", icon: "💼", description: "Build your career in Germany" }
+    ];
+
+    function t(text) { return language === "hi" ? (translations[text] || text) : text; }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+    }
+    function announce(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 4200);
+    }
+    async function saveState() {
+      if (currentScreen === "login") return;
+      const snapshot = JSON.stringify({ profile: { ...profile, cvData: { ...cvData } }, consent });
+      saveQueue = saveQueue.then(async () => {
+        const saved = await api("/api/profile", { method: "PUT", body: snapshot });
+        consent = saved.profile.consent;
+      }).catch((error) => {
+        announce(`Profile could not be saved: ${error.message}`);
+      });
+      return saveQueue;
+    }
+    function scheduleSaveState() {
+      window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(() => saveState(), 300);
+    }
+    function mapApplicantDocuments(response) {
+      return new Map(response.documents.map((doc) => [doc.doc_id, {
+        name: doc.original_name,
+        size: doc.size,
+        generated: Boolean(doc.generated),
+        verification: doc.verified ? "verified" : "attention",
+        tip: doc.tip,
+        reviewStatus: doc.review_status || "pending",
+        reviewNote: doc.review_note || "",
+        reviewedBy: doc.reviewed_by || "",
+        reviewedAt: doc.reviewed_at || null,
+        verificationStatus: doc.verification_status || "needs_human_review",
+        verificationAnalyzedAt: doc.verification_analyzed_at || null
+      }]));
+    }
+    function refreshApplicantDocuments() {
+      if (!documentRefreshPromise) {
+        const previousReviewState = reviewStateSignature();
+        documentRefreshPromise = api("/api/documents")
+          .then((response) => {
+            files = mapApplicantDocuments(response);
+            return { files, changed: previousReviewState !== reviewStateSignature() };
+          })
+          .finally(() => { documentRefreshPromise = null; });
+      }
+      return documentRefreshPromise;
+    }
+    function reviewStateSignature() {
+      return JSON.stringify([...files.entries()].map(([id, file]) => [id, file.reviewStatus, file.reviewNote, file.reviewedAt, file.verificationStatus]));
+    }
+    async function loadState() {
+      try {
+        const localHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+        if (localHost) {
+          const health = await api("/api/health");
+          if (health.localDevelopmentSession) await api("/api/dev/session", { method: "POST", body: "{}" });
+        }
+        const saved = await api("/api/me");
+        profile = { ...initialProfile, ...(saved.profile || {}), email: saved.user.email };
+        selectedRoute = saved.profile?.selectedRoute || "";
+        consent = saved.profile?.consent === true;
+        document.getElementById("consentCheck").checked = consent;
+        await refreshApplicantDocuments();
+        applications = (await api("/api/applications")).applications;
+        cvData = window.JournovaCvBuilder.prefill(profile.cvData, profile);
+        questionIndex = questions.findIndex(({ key }) => !profile[key]);
+        if (questionIndex < 0) questionIndex = questions.length;
+        changeScreen("dashboard");
+      } catch (error) {
+        if (error.message !== "Please sign in to continue.") announce(error.message);
+      }
+    }
+    function updateActivity(name) {
+      activity[name] = new Date();
+      renderActivity();
+    }
+    function renderActivity() {
+      const activeOrder = ["Intake", "Document", "Evaluator", "Pathway", "Planner", "Handoff"];
+      const completedCount = {
+        login: 0, intake: 1, profile: 1, documents: 2, verify: 3, assessment: 4, routes: 4, roadmap: 5, ready: 6
+      }[currentScreen] || 0;
+      document.getElementById("activityLog").innerHTML = activeOrder.map((name, index) => {
+        const date = activity[name];
+        const done = Boolean(date);
+        const isActive = !done && index === Math.min(completedCount, activeOrder.length - 1);
+        return `<li class="${done ? "done" : isActive ? "active" : ""}"><span class="activity-dot"></span><span>${name}<time>${date ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : isActive ? "In progress" : "Waiting"}</time></span></li>`;
+      }).join("");
+    }
+    function renderTracker() {
+      const activeIndex = { login: 0, dashboard: 0, intake: 0, profile: 1, documents: 2, verify: 3, assessment: 4, routes: 5, "opportunities-study": 5, "opportunities-ausbildung": 5, "opportunities-job": 5, opportunities: 5, roadmap: 6, ready: 7, applications: 7, cv: 1, assistant: 0, settings: 0 }[currentScreen] || 0;
+      document.getElementById("stageTracker").innerHTML = stages.map((stage, index) =>
+        `<li class="stage-item ${index === activeIndex ? "active" : index < activeIndex ? "complete" : ""}" ${index === activeIndex ? 'aria-current="step"' : ""}><span class="stage-number">${index < activeIndex ? "✓" : index + 1}</span><span>${escapeHtml(t(stage))}</span></li>`
+      ).join("");
+      const nav = document.querySelector(".login-stage-wrap");
+      nav.hidden = false;
+    }
+    function changeScreen(name) {
+      currentScreen = name;
+      loginScreen.hidden = name !== "login";
+      appScreen.hidden = name === "login";
+      syncDocumentReviewPolling();
+      syncApplicationGuidancePolling();
+      renderTracker();
+      renderActivity();
+      if (name !== "login") {
+        renderNavigation();
+        renderScreen();
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function completeness() {
+      const answered = profileFields.filter(([key]) => profile[key] !== "" && profile[key] !== null).length;
+      return Math.round((answered / profileFields.length) * 100);
+    }
+    function valueFor(key) {
+      const value = profile[key];
+      if (value === "" || value === null || value === undefined) return "—";
+      if (key === "funds") return `€${Number(value).toLocaleString("en")}`;
+      if (key === "marks") return `${value}%`;
+      if (key === "experience") return `${value} years`;
+      return String(value);
+    }
+    function profilePeek() {
+      const percent = completeness();
+      const visibleFields = profileFields.slice(0, Math.max(3, Math.min(profileFields.length, questionIndex + 1)));
+      return `<aside class="glass-card profile-peek"><div class="profile-ring" style="--progress:${percent * 3.6}deg" data-percent="${percent}%"></div><h3>${t("Your applicant profile")}</h3><p class="profile-peek-sub">${t("Edit each answer as you go.")}</p><div class="profile-peek-list">${visibleFields.map(([key, label]) => `<div class="profile-peek-row"><span>${escapeHtml(t(label))}</span><strong>${escapeHtml(valueFor(key))}</strong></div>`).join("")}</div></aside>`;
+    }
+    function renderQuestionControl(question) {
+      const currentValue = profile[question.key];
+      if (question.type === "choice") {
+        return `<div class="choice-grid ${question.key === "goal" ? "goal-grid" : ""}">${question.options.map(([value, icon, sub]) => `<button class="choice-card ${String(currentValue) === value ? "selected" : ""}" type="button" data-action="answer-choice" data-value="${escapeHtml(value)}"><span class="choice-icon">${icon}</span><span><span class="choice-title">${escapeHtml(t(value))}</span><span class="choice-sub">${escapeHtml(sub)}</span></span></button>`).join("")}</div>`;
+      }
+      if (question.type === "select") {
+        return `<select class="answer-control" id="questionAnswer"><option value="">Choose an option</option>${question.options.map((option) => `<option ${currentValue === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select>`;
+      }
+      if (question.type === "range") {
+        const defaultValue = currentValue === "" ? Math.round((question.min + question.max) / 2) : Number(currentValue);
+        const shown = question.key === "funds" ? `€${Number(defaultValue).toLocaleString("en")}` : `${defaultValue}${question.unit === "%" ? "%" : ` ${question.unit}`}`;
+        return `<div class="slider-row"><span>${question.min}${question.key === "funds" ? "€" : ""}</span><strong id="rangeValue">${escapeHtml(shown)}</strong><span>${question.key === "funds" ? "€" : ""}${question.max}${question.unit === "%" ? "%" : ""}</span></div><input class="answer-control" id="questionAnswer" type="range" min="${question.min}" max="${question.max}" step="${question.step}" value="${defaultValue}" data-unit="${escapeHtml(question.unit)}">`;
+      }
+      return `<input class="answer-control" id="questionAnswer" type="date" min="${new Date().toISOString().slice(0, 10)}" value="${escapeHtml(currentValue)}">`;
+    }
+    function openProfileEditor(field) {
+      const question = questions.find((item) => item.key === field);
+      const fieldInfo = profileFields.find(([key]) => key === field);
+      if (!question || !fieldInfo) return;
+      let control;
+      if (question.type === "choice") {
+        control = `<select class="answer-control" id="editValue" required>${question.options.map(([value]) => `<option value="${escapeHtml(value)}" ${profile[field] === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select>`;
+      } else if (question.type === "select") {
+        control = `<select class="answer-control" id="editValue" required><option value="">Choose an option</option>${question.options.map((value) => `<option value="${escapeHtml(value)}" ${profile[field] === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select>`;
+      } else if (question.type === "range") {
+        control = `<input class="answer-control" id="editValue" type="number" min="${question.min}" max="${question.max}" step="${question.step}" value="${escapeHtml(profile[field] === "" ? question.min : profile[field])}" required>`;
+      } else {
+        control = `<input class="answer-control" id="editValue" type="date" min="${new Date().toISOString().slice(0, 10)}" value="${escapeHtml(profile[field])}" required>`;
+      }
+      const label = language === "hi" ? question.titleHi : question.title;
+      editorOverlay.innerHTML = `<section class="editor-card slide-in" role="dialog" aria-modal="true" aria-labelledby="editorTitle"><h2 id="editorTitle">${escapeHtml(label)}</h2><form id="profileEditForm" data-field="${escapeHtml(field)}"><label class="field-label" for="editValue">${escapeHtml(fieldInfo[1])}</label>${control}<div class="editor-actions"><button class="secondary-button" type="button" data-editor-cancel>Cancel</button><button class="next-button" type="submit">Save changes</button></div></form></section>`;
+      editorOverlay.hidden = false;
+      document.getElementById("editValue").focus();
+    }
+    editorOverlay.addEventListener("submit", async (event) => {
+      const form = event.target.closest("#profileEditForm");
+      if (!form) return;
+      event.preventDefault();
+      const field = form.dataset.field;
+      const control = form.querySelector("#editValue");
+      profile[field] = control.type === "number" ? Number(control.value) : control.value;
+      await saveState();
+      editorOverlay.hidden = true;
+      editorOverlay.innerHTML = "";
+      renderScreen();
+    });
+    editorOverlay.addEventListener("click", (event) => {
+      if (event.target === editorOverlay || event.target.closest("[data-editor-cancel]")) {
+        editorOverlay.hidden = true;
+        editorOverlay.innerHTML = "";
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !editorOverlay.hidden) {
+        editorOverlay.hidden = true;
+        editorOverlay.innerHTML = "";
+      }
+    });
+    function renderIntake() {
+      const question = questions[questionIndex];
+      const progress = Math.round(((questionIndex + 1) / questions.length) * 100);
+      const title = language === "hi" ? question.titleHi : question.title;
+      return `<div class="screen-head"><div><span class="kicker">01 / ${t("Intake")}</span><h1>${t("Your Germany journey")}</h1><p>One question at a time. Your profile updates as you answer.</p></div></div>
+        <div class="app-columns slide-in"><section class="glass-card chat-card"><div class="chat-topline"><span>${t("Question")} ${questionIndex + 1} ${language === "hi" ? "में से" : "of"} ${questions.length}</span><span>${progress}%</span></div><div class="chat-progress"><span style="width:${progress}%"></span></div><h2 class="chat-question">${escapeHtml(title)}</h2><div id="answerArea">${renderQuestionControl(question)}</div><div class="chat-actions"><button class="secondary-button" type="button" data-action="undo" ${questionIndex === 0 ? "disabled" : ""}>← ${language === "hi" ? "पिछला प्रश्न" : "Undo"}</button><button class="next-button" type="button" data-action="next-question">${language === "hi" ? "आगे" : "Next"} <span>→</span></button></div></section>${profilePeek()}</div>`;
+    }
+    function renderProfile() {
+      return `<div class="screen-head"><div><span class="kicker">02 / ${t("Profile")}</span><h1>${language === "hi" ? "आपकी प्रोफ़ाइल, एक नज़र में" : "Your profile, at a glance"}</h1><p>${language === "hi" ? "अपनी जानकारी जाँचें और किसी भी उत्तर को संपादित करें।" : "Review your answers and edit any field before moving on."}</p></div><div class="profile-ring" style="--progress:${completeness() * 3.6}deg" data-percent="${completeness()}%"></div></div><div class="field-list slide-in">${profileFields.map(([key, label]) => `<article class="field-card"><div><span>${escapeHtml(t(label))}</span><strong>${escapeHtml(valueFor(key))}</strong></div><button class="icon-button" type="button" data-action="edit-field" data-field="${key}" aria-label="Edit ${escapeHtml(label)}">✎</button></article>`).join("")}</div><div class="bottom-actions"><button class="next-button" type="button" data-action="to-documents">${t("Upload documents")} →</button></div>`;
+    }
+    function requiredDocuments() {
+      return docDefinitions.filter((doc) => !doc.only || doc.only === profile.goal);
+    }
+    function uploadedCount() {
+      return requiredDocuments().filter((doc) => files.has(doc.id)).length;
+    }
+    function applicantDocumentStatus(file) {
+      if (!file) return ["Missing", ""];
+      if (file.reviewStatus === "verified") return ["Verified via issuer", "good"];
+      if (file.reviewStatus === "approved") return ["Visual review approved", "good"];
+      if (file.reviewStatus === "needs_changes") return ["Re-upload requested", "warn"];
+      if (file.reviewStatus === "additional_review") return ["Additional human review", "warn"];
+      if (file.reviewStatus === "rejected") return ["Document not accepted", "warn"];
+      return ["Awaiting human review", ""];
+    }
+    function applicantDocumentMessage(file) {
+      if (!file) return "Add a file to begin review.";
+      if (file.reviewStatus === "verified") return "An authorised reviewer recorded an official issuer check. This is separate from the local file checks.";
+      if (file.reviewStatus === "approved") return "Visual review complete. Authenticity has not been independently established.";
+      if (file.reviewStatus === "needs_changes") return file.reviewNote || "Please upload a replacement file.";
+      if (file.reviewStatus === "additional_review") return "Your document needs additional human review. No automatic rejection has been made.";
+      if (file.reviewStatus === "rejected") return "This document was not accepted. Contact your counsellor for guidance.";
+      return "Automated screening is complete. Human review is required; this app cannot determine whether a document is genuine.";
+    }
+    function renderDocuments() {
+      const docs = requiredDocuments();
+      const count = uploadedCount();
+      return `<div class="screen-head"><div><span class="kicker">03 / ${t("Documents")}</span><h1>${t("Upload documents")}</h1><p>Documents are stored in your account on this app server. PDF, JPEG, PNG, WEBP or TXT · Max 10 MB per file.</p></div></div><div class="scan-banner"><span>${count} ${language === "hi" ? "में से" : "of"} ${docs.length} uploaded</span><span class="scan-status">${count === docs.length ? "All required files added" : "Drop a file on a card or choose a file"}</span></div><p class="indicative-note">Admin review decisions appear here automatically while this page is open. “Approved” means visually reviewed only—not proven genuine.</p><div class="doc-grid slide-in">${docs.map((doc) => {
+        const file = files.get(doc.id);
+        const status = applicantDocumentStatus(file);
+        return `<article class="doc-card" data-doc-card="${doc.id}"><div class="doc-card-top"><span class="doc-symbol">${doc.icon}</span><span class="doc-status ${status[1]}">${status[0]}</span></div><h3>${escapeHtml(doc.title)}</h3><p>${escapeHtml(file ? file.tip : doc.tip)}</p>${file ? `<p class="doc-file">Technical file check: ${file.verification === "verified" ? "passed" : "needs attention"}</p><p class="doc-file">${escapeHtml(file.name)} · ${(file.size / 1024 / 1024).toFixed(1)} MB</p><p class="doc-file">${escapeHtml(applicantDocumentMessage(file))}</p>${file.reviewedAt ? `<p class="doc-file">Reviewed${file.reviewedBy ? ` by ${escapeHtml(file.reviewedBy)}` : ""} · ${escapeHtml(new Date(file.reviewedAt).toLocaleString())}</p>` : ""}${file.reviewNote && file.reviewStatus === "needs_changes" ? `<p class="doc-file">Reviewer note: ${escapeHtml(file.reviewNote)}</p>` : ""}` : ""}<div class="doc-progress"><span style="width:${file ? 100 : 0}%"></span></div><label class="upload-button">↑ ${file ? "Replace file" : "Choose file"}<input type="file" data-upload="${doc.id}" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,application/pdf,image/png,image/jpeg,image/webp,text/plain"></label></article>`;
+      }).join("")}</div><p class="indicative-note">${language === "hi" ? "फ़ाइलें आपके खाते में सुरक्षित रूप से रखी जाती हैं; सर्वर फ़ाइल प्रकार, आकार और बुनियादी पठनीयता जाँचता है।" : "Files are stored in your account. The server checks file type, size and basic readability."}</p><div class="bottom-actions"><button class="next-button" type="button" data-action="to-verify">${t("Continue to verification")} →</button></div>`;
+    }
+    function renderVerification() {
+      const docs = requiredDocuments();
+      const approved = docs.filter((doc) => ["approved", "verified"].includes(files.get(doc.id)?.reviewStatus)).length;
+      const pending = docs.filter((doc) => files.get(doc.id)?.reviewStatus === "pending").length;
+      const needsChanges = docs.filter((doc) => files.get(doc.id)?.reviewStatus === "needs_changes").length;
+      const additionalReview = docs.filter((doc) => ["additional_review", "rejected"].includes(files.get(doc.id)?.reviewStatus)).length;
+      const missing = docs.filter((doc) => !files.has(doc.id)).length;
+      return `<div class="screen-head"><div><span class="kicker">04 / ${t("Verify")}</span><h1>${language === "hi" ? "दस्तावेज़ समीक्षा" : "Document review"}</h1><p>${language === "hi" ? "तकनीकी फ़ाइल जाँच के बाद, एडमिन आपकी अपलोड की गई फ़ाइल की समीक्षा करेगा।" : "Basic screening runs on upload. Human review is required; no OCR, AI authenticity assessment or official issuer lookup is connected."}</p></div></div><div class="scan-banner"><span>✓ ${approved} reviewed　◷ ${pending} awaiting　△ ${needsChanges} re-upload　! ${additionalReview} additional review　○ ${missing} missing</span><button class="small-button" type="button" data-action="scan" ${scanRunning ? "disabled" : ""}>${scanRunning ? "Refreshing…" : "Refresh review status"}</button></div><div class="doc-grid">${docs.map((doc) => {
+        const file = files.get(doc.id);
+        const state = file?.reviewStatus;
+        const status = applicantDocumentStatus(file);
+        return `<article class="doc-card"><div class="doc-card-top"><span class="doc-symbol">${doc.icon}</span><span class="doc-status ${status[1]}">${status[0]}</span></div><h3>${escapeHtml(doc.title)}</h3><p>${escapeHtml(applicantDocumentMessage(file))}</p>${file ? `<p class="doc-file">Technical file check: ${file.verification === "verified" ? "passed" : "needs attention"}. ${escapeHtml(file.tip || "")}</p>` : ""}${file?.reviewedAt ? `<p class="doc-file">Reviewed${file.reviewedBy ? ` by ${escapeHtml(file.reviewedBy)}` : ""} · ${escapeHtml(new Date(file.reviewedAt).toLocaleString())}</p>` : ""}${file?.reviewNote && state === "needs_changes" ? `<p class="doc-file">Reviewer note: ${escapeHtml(file.reviewNote)}</p>` : ""}${file && ["needs_changes", "rejected"].includes(state) ? `<label class="upload-button">↑ Re-upload file<input type="file" data-upload="${doc.id}" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,application/pdf,image/png,image/jpeg,image/webp,text/plain"></label>` : ""}</article>`;
+      }).join("")}</div><p class="indicative-note">The automated screening does not determine authenticity. Admin approval is a visual review only; any issuer verification must be recorded separately and does not guarantee acceptance by an institution or authority. For certificates, use the issuing organisation's official verification channel.</p><div class="bottom-actions"><button class="next-button" type="button" data-action="to-assessment">${t("Continue to assessment")} →</button></div>`;
+    }
+    function levelScore(level) { return ({ None: 15, A1: 30, A2: 45, B1: 65, B2: 82, C1: 94, C2: 100 })[level] || 0; }
+    function metrics(useServer = true) {
+      if (useServer && serverAssessment) {
+        const { score, tier, factors } = serverAssessment;
+        return {
+          score, tier,
+          academic: factors.find((item) => item.name === "Academic")?.value || 0,
+          language: factors.find((item) => item.name === "Language")?.value || 0,
+          funds: factors.find((item) => item.name === "Funds")?.value || 0,
+          documents: factors.find((item) => item.name === "Documents")?.value || 0,
+          experience: factors.find((item) => item.name === "Experience")?.value || 0
+        };
+      }
+      const docs = requiredDocuments();
+      const docsScore = docs.length ? Math.round(docs.filter((doc) => files.get(doc.id)?.reviewStatus === "approved").length / docs.length * 100) : 0;
+      const academic = Math.min(100, Math.round(Number(profile.marks || 0) * .75 + (profile.education ? 25 : 0)));
+      const language = Math.round((levelScore(profile.german) * .65 + levelScore(profile.english) * .35));
+      const funds = Math.min(100, Math.round(Number(profile.funds || 0) / 12000 * 100));
+      const experience = Math.min(100, Math.round(Number(profile.experience || 0) * 10));
+      const score = Math.round(academic * .30 + language * .25 + funds * .20 + docsScore * .15 + experience * .10);
+      return { score, academic, language, funds, documents: docsScore, experience };
+    }
+    function scoreTier(score) { return score >= 75 ? "Qualified" : score >= 55 ? "Nearly ready" : "Build-up"; }
+    function renderAssessment() {
+      const data = metrics();
+      const score = data.score;
+      const rows = [["Academic", data.academic, "30%"], ["Language", data.language, "25%"], ["Funds", data.funds, "20%"], ["Documents", data.documents, "15%"], ["Experience", data.experience, "10%"]];
+      const impacts = [
+        ["Raise German by one level", "+ up to 16 pts"],
+        ["Add verified required documents", `+ up to ${Math.round(15 - data.documents * .15)} pts`],
+        ["Increase available funds", `+ up to ${Math.round(20 - data.funds * .20)} pts`]
+      ];
+      return `<div class="screen-head"><div><span class="kicker">05 / ${t("Score")}</span><h1>${language === "hi" ? "आपकी तैयारी का आकलन" : "Your readiness assessment"}</h1><p>Indicative scoring to help prioritize next steps — not an admission or visa decision.</p></div></div><div class="score-layout slide-in"><div class="glass-card score-card"><div class="score-ring" id="scoreRing" style="--score:${score * 3.6}deg" data-score="${score}"></div><p class="score-caption">Readiness score / 100</p><span class="tier-badge" id="scoreTier">${scoreTier(score)}</span></div><div class="glass-card score-detail"><h3>Readiness factors <span style="color:var(--muted);font-weight:400">· weight</span></h3>${rows.map(([name, value, weight]) => `<div class="score-row"><div class="score-row-head"><span>${name}</span><span>${value}/100 · ${weight}</span></div><div class="score-bar"><span style="width:${value}%"></span></div></div>`).join("")}</div></div><div class="glass-card panel-pad" style="margin-top:15px"><h3 style="margin:0 0 12px;font-size:13px">${t("What moves your score most")}</h3>${impacts.map(([name, points]) => `<div class="summary-line"><span>${name}</span><strong style="color:var(--accent)">${points}</strong></div>`).join("")}</div><h3 style="margin:20px 0 10px;font-size:13px">What-if sliders <span style="color:var(--muted);font-weight:400">· adjusts score preview only</span></h3><div class="whatif-grid"><div class="whatif-control"><label>German level <output id="germanOutput">${escapeHtml(profile.german)}</output></label><input type="range" min="0" max="5" value="${Math.max(0, ["None","A1","A2","B1","B2","C1"].indexOf(profile.german))}" data-whatif="german"></div><div class="whatif-control"><label>English level <output id="englishOutput">${escapeHtml(profile.english)}</output></label><input type="range" min="1" max="6" value="${Math.max(1, ["","A1","A2","B1","B2","C1","C2"].indexOf(profile.english))}" data-whatif="english"></div><div class="whatif-control"><label>Available funds <output id="fundsOutput">€${Number(profile.funds || 0).toLocaleString("en")}</output></label><input type="range" min="0" max="50000" step="500" value="${Number(profile.funds || 0)}" data-whatif="funds"></div></div><div class="bottom-actions"><button class="next-button" type="button" data-action="to-routes">${t("Continue to routes")} →</button></div>`;
+    }
+    function routeFits() {
+      const data = metrics();
+      const german = levelScore(profile.german);
+      const experience = Number(profile.experience || 0);
+      const values = {
+        Study: Math.round(data.academic * .36 + levelScore(profile.english) * .22 + data.funds * .17 + german * .12 + data.documents * .13),
+        Ausbildung: Math.round(german * .34 + data.academic * .18 + experience * .17 + data.funds * .13 + data.documents * .18),
+        Job: Math.round(experience * .30 + german * .22 + levelScore(profile.english) * .18 + data.academic * .12 + data.documents * .18)
+      };
+      return values;
+    }
+    function reasonsFor(route) {
+      const common = ["Your selected goal matches this route", `${profile.field || "Your field"} is included in the plan`, `Readiness score is ${metrics().score}/100`];
+      const gaps = [];
+      if (route === "Study") {
+        if (Number(profile.marks) >= 60) common[1] = `Academic score: ${profile.marks}%`;
+        if (levelScore(profile.german) < 65) gaps.push("Build German toward B1/B2");
+        if (Number(profile.funds) < 12000) gaps.push("Plan funding for tuition and living costs");
+        if (!files.has("aps")) gaps.push("Check APS requirements for your course");
+      } else if (route === "Ausbildung") {
+        if (levelScore(profile.german) >= 45) common[1] = `German foundation: ${profile.german}`;
+        if (profile.education) common[2] = `Education: ${profile.education}`;
+        if (levelScore(profile.german) < 65) gaps.push("Many roles expect stronger German");
+        if (Number(profile.experience) < 1) gaps.push("Add practical or vocational experience");
+      } else {
+        if (Number(profile.experience) >= 1) common[1] = `${profile.experience} years of experience`;
+        if (levelScore(profile.english) >= 65) common[2] = `English level: ${profile.english}`;
+        if (levelScore(profile.german) < 45) gaps.push("Build German for more job options");
+        if (Number(profile.experience) < 2) gaps.push("Strengthen role-specific experience");
+      }
+      return { reasons: common, gaps: gaps.length ? gaps : ["Confirm requirements with your target institution/employer", "Prepare certified translations if requested"] };
+    }
+    function renderRoutes() {
+      const fits = serverPathways?.fits || routeFits();
+      const best = Object.keys(fits).sort((a, b) => fits[b] - fits[a])[0];
+      return `<div class="screen-head"><div><span class="kicker">06 / ${t("Pathway")}</span><h1>${language === "hi" ? "आपके लिए सही रास्ता" : "Three paths. One is yours."}</h1><p>Compare indicative fit across Study, Ausbildung and Job. Choose one to tailor your plan.</p></div></div><div class="route-grid slide-in">${routeData.map((route) => {
+        const { reasons, gaps } = reasonsFor(route.id);
+        return `<article class="route-card ${best === route.id ? "best" : ""}">${best === route.id ? `<span class="best-badge">Best for you</span>` : ""}<h3>${route.icon} ${route.id}</h3><p class="route-fit-label">${route.description}</p><div class="fit-ring" style="--fit:${fits[route.id] * 3.6}deg" data-fit="${fits[route.id]}%"></div><ul class="route-list">${reasons.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><ul class="route-list gaps">${gaps.slice(0, 2).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul><button class="next-button" type="button" data-action="select-route" data-route="${route.id}">${t("Choose this route")}</button></article>`;
+      }).join("")}</div><div class="bridge-card"><div><strong>${t("Bridge: build your German first")}</strong><p>A practical alternative while you strengthen your profile.</p></div><button class="secondary-button" type="button" data-action="select-route" data-route="Bridge">Explore →</button></div><p class="indicative-note">Fit percentages are indicative comparisons based on your answers, not official eligibility determinations.</p>`;
+    }
+    function targetDate() {
+      if (profile.startDate) return new Date(`${profile.startDate}T12:00:00`);
+      const fallback = new Date();
+      fallback.setMonth(fallback.getMonth() + 10);
+      return fallback;
+    }
+    function roadmapSteps() {
+      const route = selectedRoute === "Bridge" ? "Ausbildung" : selectedRoute;
+      const map = {
+        Study: [["Shortlist programs", -10], ["Language test", -9], ["APS certificate", -8], ["Submit applications", -7], ["Receive admission", -5], ["Blocked account & finances", -4], ["Visa application", -2], ["Fly to Germany", 0]],
+        Ausbildung: [["Choose a training occupation", -10], ["Build German toward B1/B2", -9], ["Prepare translated documents", -8], ["Apply to training employers", -7], ["Interview & contract", -5], ["Arrange finances and housing", -4], ["Visa application", -2], ["Fly to Germany", 0]],
+        Job: [["Research target roles", -9], ["Prepare CV and references", -8], ["Check qualification recognition", -7], ["Apply and interview", -6], ["Secure job offer", -4], ["Arrange relocation finances", -3], ["Visa application", -2], ["Fly to Germany", 0]]
+      };
+      return map[route] || map.Study;
+    }
+    function roadmapEntries() {
+      if (serverRoadmap?.steps) return serverRoadmap.steps.map((entry) => ({ title: entry.title, date: new Date(entry.date), doNow: entry.doNow }));
+      const start = serverRoadmap?.startDate ? new Date(serverRoadmap.startDate) : targetDate();
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      return roadmapSteps().map(([title, offset]) => {
+        const date = new Date(start);
+        date.setMonth(date.getMonth() + offset);
+        const doNow = date < today;
+        return { title, date, doNow, offset };
+      });
+    }
+    function renderRoadmap() {
+      const entries = roadmapEntries();
+      const start = targetDate();
+      const today = new Date();
+      const months = serverRoadmap?.monthsLeft ?? Math.max(0, Math.ceil((start - today) / (1000 * 60 * 60 * 24 * 30.4375)));
+      const actions = entries.filter((entry) => entry.doNow).slice(-3).reverse();
+      const thisWeek = (actions.length ? actions : entries.slice(0, 3)).map((entry) => entry.title);
+      return `<div class="screen-head"><div><span class="kicker">07 / ${t("Roadmap")}</span><h1>${language === "hi" ? "आपकी जर्मनी योजना" : "Your road to Germany"}</h1><p>${escapeHtml(selectedRoute || "Study")} route · working backwards from ${start.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</p></div></div><div class="roadmap-columns"><div class="glass-card panel-pad"><ol class="timeline">${entries.map((entry) => `<li class="timeline-item ${entry.doNow ? "do-now" : ""}"><span class="timeline-dot">${entry.doNow ? "!" : "→"}</span><div><h3>${escapeHtml(entry.title)} ${entry.doNow ? `<span class="do-now-label">· Do now</span>` : ""}</h3><p>${entry.doNow ? "This target date has passed. Review and adjust your start date." : "Allow time for appointments, processing and official requirements."}</p></div><time class="timeline-date">${entry.date.toLocaleDateString(undefined, { month: "short", year: "numeric" })}</time></li>`).join("")}</ol></div><aside class="glass-card week-card"><h3>${t("This week")}</h3><ol>${thisWeek.map((action) => `<li>${escapeHtml(action)}</li>`).join("")}</ol><div class="countdown">${months} months left</div></aside></div><div class="bottom-actions"><button class="next-button" type="button" data-action="to-ready">${t("Continue to application ready")} →</button></div><p class="indicative-note">${t("Indicative guidance only. Confirm requirements with official German authorities and institutions.")}</p>`;
+    }
+    function missingItems() {
+      return requiredDocuments().filter((doc) => files.get(doc.id)?.verification !== "verified").map((doc) => doc.title);
+    }
+    function applicantSummary() {
+      return {
+        applicant: { email: profile.email || "", goal: profile.goal, field: profile.field, education: profile.education, marks: profile.marks, english: profile.english, german: profile.german, experienceYears: profile.experience, age: profile.age, availableFundsEUR: profile.funds, targetStartDate: profile.startDate },
+        selectedRoute,
+        readiness: { score: metrics().score, tier: scoreTier(metrics().score) },
+        documentChecks: requiredDocuments().map((doc) => ({ document: doc.title, status: files.get(doc.id)?.verification || "missing" })),
+        riskFlags: [
+          ...(levelScore(profile.german) < 45 ? ["German language development needed"] : []),
+          ...(Number(profile.funds) < 12000 ? ["Funding plan needs review"] : []),
+          ...missingItems().map((item) => `Missing or unchecked: ${item}`)
+        ],
+        consentGiven: consent,
+        privacy: "Profile and document metadata are stored in this app database. Handoffs are not externally sent."
+      };
+    }
+    function renderReady() {
+      const missing = missingItems();
+      const summary = applicantSummary();
+      const message = `Hello Educaro team, I would like guidance on my Germany ${profile.goal || "study"} journey. My target start is ${profile.startDate || "not set"} and my readiness preview is ${metrics().score}/100. Please contact me at ${profile.email || "my registered email"}.`;
+      return `<div class="ready-hero slide-in"><div class="ready-check">✓</div><h2>${t("Application Ready")}</h2><p>Your profile is organized for a counsellor conversation.</p><span class="tier-badge">${scoreTier(metrics().score)} · ${metrics().score}/100</span></div><div class="ready-layout"><section class="glass-card ready-panel"><h3>Journey checklist</h3><ul class="check-list">${["Applicant profile completed", `${selectedRoute || profile.goal} route selected`, `${uploadedCount()} of ${requiredDocuments().length} documents added`, "Readiness assessment calculated", "Personal roadmap prepared"].map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>${missing.length ? `<p class="indicative-note">Still missing or unchecked: ${escapeHtml(missing.join(", "))}</p>` : ""}</section><section class="glass-card ready-panel"><h3>Counsellor handoff preview</h3><div class="summary-line"><span>Applicant</span><strong>${escapeHtml(profile.email || "Applicant")}</strong></div><div class="summary-line"><span>Route / tier</span><strong>${escapeHtml(selectedRoute)} · ${scoreTier(metrics().score)}</strong></div><div class="summary-line"><span>Risk flags</span><strong>${summary.riskFlags.length}</strong></div><div class="summary-line"><span>Missing items</span><strong>${missing.length}</strong></div><p class="indicative-note">WhatsApp message preview</p><div class="message-preview">${escapeHtml(message)}</div><textarea class="json-output" id="jsonOutput" readonly aria-label="Applicant profile JSON">${escapeHtml(JSON.stringify(summary, null, 2))}</textarea><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px"><button class="small-button" type="button" data-action="copy-json">${t("Copy JSON")}</button><button class="small-button" type="button" data-action="download-json">${t("Download profile")}</button></div></section></div><div class="glass-card ready-panel" style="margin-top:14px"><h3>Consent & counsellor contact</h3><p class="indicative-note" style="margin-top:0">${consent ? "Consent recorded on your account." : "Consent was not given yet. Update it in Settings."} Handoff requests are saved to your account, but no counsellor is notified from this app.</p><button class="next-button" type="button" data-action="send-handoff" ${consent ? "" : "disabled"}>${t("Send to Educaro counsellor")}</button>${consent ? "" : `<p class="indicative-note">This action is available only when you give consent.</p>`}</div><div class="fraud-card"><h3>⚠ ${t("Before you pay anyone")}</h3><p>Verify fees, contracts and visa instructions directly with official German authorities and your institution or employer. Never transfer money to a personal account based only on a message or promise. Saving a handoff here does not notify Educaro or initiate contact.</p></div><p class="indicative-note">${t("Indicative guidance only. Confirm requirements with official German authorities and institutions.")}</p>`;
+    }
+    async function renderDashboard() {
+      const data = await api("/api/dashboard");
+      const percent = completeness();
+      return `<div class="screen-head"><div><span class="kicker">Welcome back</span><h1>Your Germany journey</h1><p>Your applicant workspace, in one place.</p></div><button class="next-button" type="button" data-nav="intake">✦ Continue onboarding</button></div><div class="route-grid"><article class="route-card"><span class="kicker">Profile</span><h3>${percent}% complete</h3><div class="doc-progress"><span style="width:${percent}%"></span></div><button class="small-button" type="button" data-nav="profile">Review profile →</button></article><article class="route-card"><span class="kicker">Readiness</span><h3>${data.assessment.score}/100</h3><p class="route-fit-label">${data.assessment.tier} · indicative only</p><button class="small-button" type="button" data-nav="assessment">See assessment →</button></article><article class="route-card"><span class="kicker">Documents</span><h3>${data.verifiedCount}/${data.documentCount} approved</h3><p class="route-fit-label">Admin visual review · not authenticity verification</p><button class="small-button" type="button" data-nav="documents">Open documents →</button></article></div><div class="ready-layout" style="margin-top:14px"><article class="glass-card ready-panel"><h3>Journey shortcuts</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary-button" type="button" data-nav="opportunities">Explore opportunities</button><button class="secondary-button" type="button" data-nav="applications">Track applications</button><button class="secondary-button" type="button" data-nav="cv">Build your CV</button></div></article><article class="glass-card ready-panel"><h3>Current plan</h3><p style="color:var(--muted);font-size:11px">${escapeHtml(profile.goal || "Choose a goal during onboarding")} · ${escapeHtml(profile.startDate || "Start date not set")}</p><button class="secondary-button" type="button" data-nav="roadmap">View journey →</button></article></div><p class="indicative-note">${t("Indicative guidance only. Confirm requirements with official German authorities and institutions.")}</p>`;
+    }
+    async function renderOpportunities(route) {
+      const data = await api(`/api/opportunities?route=${encodeURIComponent(route)}`);
+      return `<div class="screen-head"><div><span class="kicker">Explore · ${escapeHtml(route)}</span><h1>${escapeHtml(route)} opportunities</h1><p>Find verified starting points from official sources.</p></div></div><div class="glass-card panel-pad"><h3 style="margin:0 0 8px;font-size:14px">Official search resources</h3><p class="indicative-note">There is no live listings feed connected. These are official external search pages, not partner recommendations.</p><div class="field-list" style="margin-top:15px">${data.officialResources.map((item) => `<a class="field-card" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--text)"><div><span>Official resource</span><strong>${escapeHtml(item.title)}</strong></div><span aria-hidden="true">↗</span></a>`).join("")}</div></div><div class="bottom-actions"><button class="secondary-button" type="button" data-nav="routes">Compare your route fit →</button></div>`;
+    }
+    async function renderApplications() {
+      const result = await api("/api/applications");
+      applications = result.applications;
+      return `<div class="screen-head"><div><span class="kicker">Workspace</span><h1>Applications</h1><p>Track applications and see what would move each one forward.</p></div><button class="next-button" type="button" data-action="add-application">＋ Add application</button></div><form class="glass-card panel-pad" id="applicationForm" hidden><h3 style="margin:0 0 14px">New application</h3><label class="field-label" for="applicationTitle">Program, course or role<input class="answer-control" id="applicationTitle" name="title" maxlength="160" required placeholder="e.g. Bachelor's in Computer Science"></label><label class="field-label" for="applicationOrganization">University, provider or employer<input class="answer-control" id="applicationOrganization" name="organization" maxlength="160" placeholder="e.g. University of Bonn"></label><label class="field-label" for="applicationRoute">Route<select class="answer-control" id="applicationRoute" name="route"><option value="Study" ${(selectedRoute || profile.goal || "Study") === "Study" ? "selected" : ""}>Study</option><option value="Ausbildung" ${(selectedRoute || profile.goal) === "Ausbildung" ? "selected" : ""}>Ausbildung</option><option value="Job" ${(selectedRoute || profile.goal) === "Job" ? "selected" : ""}>Job</option></select></label><label class="field-label" for="applicationDeadline">Application deadline (optional)<input class="answer-control" id="applicationDeadline" name="deadline" type="date"></label><label class="field-label" for="applicationRequirements">Requirements from the provider’s instructions<textarea class="answer-control" id="applicationRequirements" name="requirementsText" rows="3" maxlength="5000" placeholder="One requirement per line, for example: Submit motivation letter"></textarea></label><p class="app-guidance-note">Enter requirements and dates from the institution’s or employer’s official instructions. These vary by provider and are not inferred by the app.</p><div class="bottom-actions"><button class="secondary-button" type="button" data-action="cancel-application">Cancel</button><button class="next-button" type="submit">Save application</button></div></form>${applications.length ? `<div class="doc-grid">${applications.map((item) => {
+        const guidance = item.nextBestAction;
+        const requirements = item.requirements || [];
+        const attention = guidance.missingItems.slice(0, 4);
+        const moreAttention = guidance.missingItems.length - attention.length;
+        const deadlineText = guidance.deadlineDays === null
+          ? "No deadline set"
+          : guidance.deadlineDays < 0
+            ? `Passed ${Math.abs(guidance.deadlineDays)} day(s) ago`
+            : guidance.deadlineDays === 0
+              ? "Due today"
+              : `${guidance.deadlineDays} day(s) left`;
+        return `<article class="doc-card"><div class="doc-card-top"><span class="doc-symbol">📨</span><span class="doc-status">${escapeHtml(item.status)}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.organization || item.route)} · ${escapeHtml(item.route)}</p><section class="nba-panel" aria-label="AI next best action"><div class="nba-heading"><strong>✦ AI Next Best Action</strong><span class="nba-score">${guidance.readiness}% ready</span></div><div class="nba-meter" role="progressbar" aria-label="Application planning readiness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${guidance.readiness}"><span style="width:${guidance.readiness}%"></span></div><p class="nba-action"><strong>Recommended next step:</strong> ${escapeHtml(guidance.nextAction)}</p>${["profile", "documents", "requirements", "deadline"].includes(guidance.nextActionTarget) ? `<button class="small-button" type="button" data-action="application-next-action" data-target="${guidance.nextActionTarget}" data-id="${escapeHtml(item.id)}">Go to next step →</button>` : ""}<div class="nba-factors">${guidance.factors.map((factor) => `<div class="nba-factor"><span>${escapeHtml(factor.name)} · ${factor.weight}%</span><strong>${factor.score}%</strong></div>`).join("")}</div>${attention.length ? `<div class="nba-attention"><strong>Needs attention</strong><br>${attention.map((entry) => escapeHtml(entry)).join("<br>")}${moreAttention > 0 ? `<br>+ ${moreAttention} more item(s)` : ""}</div>` : ""}<p class="app-guidance-note">Explainable in-app planner using your profile, visual document reviews, checklist and deadline. It is not an eligibility decision or a live external AI service.</p></section><label class="field-label">Application status<select class="answer-control" data-app-status="${escapeHtml(item.id)}"><option ${item.status === "Preparing" ? "selected" : ""}>Preparing</option><option ${item.status === "Applied" ? "selected" : ""}>Applied</option><option ${item.status === "Interview" ? "selected" : ""}>Interview</option><option ${item.status === "Offer" ? "selected" : ""}>Offer</option><option ${item.status === "Closed" ? "selected" : ""}>Closed</option></select></label><label class="field-label app-deadline">Official application deadline<input class="answer-control" type="date" value="${escapeHtml(item.deadline || "")}" data-app-deadline="${escapeHtml(item.id)}"><span class="app-guidance-note">${escapeHtml(deadlineText)} · Add or update using the provider’s official instructions.</span></label><div class="field-label" style="margin-top:13px">Provider requirements checklist</div>${requirements.length ? `<div class="app-requirements">${requirements.map((requirement) => `<label class="app-requirement"><input type="checkbox" data-app-requirement="${escapeHtml(requirement.id)}" data-app-id="${escapeHtml(item.id)}" ${requirement.completed ? "checked" : ""}><span>${escapeHtml(requirement.label)}</span></label>`).join("")}</div>` : `<p class="app-guidance-note">No provider requirements entered yet. Add them from the official application instructions.</p>`}<label class="field-label">Add or edit requirements (one per line)<textarea class="answer-control" rows="2" maxlength="5000" data-app-requirements-text="${escapeHtml(item.id)}">${escapeHtml(requirements.map((requirement) => requirement.label).join("\n"))}</textarea></label><button class="small-button" type="button" data-action="save-app-requirements" data-id="${escapeHtml(item.id)}">Save requirements</button><p class="app-guidance-note">Documents awaiting visual review are not treated as authenticity-verified.</p><button class="small-button" style="margin-top:8px" type="button" data-action="delete-application" data-id="${escapeHtml(item.id)}">Remove</button></article>`;
+      }).join("")}</div>` : `<div class="glass-card panel-pad"><div class="ready-check" style="width:48px;height:48px;font-size:20px;margin:0 0 14px">＋</div><h3 style="margin:0">No applications yet</h3><p class="indicative-note">Add your first university, training provider or employer above. Record the official deadline and requirements to get a personalized next step.</p></div>`}`;
+    }
+    async function updateApplicationRecord(id, updates, message) {
+      try {
+        await api(`/api/applications/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(updates) });
+        announce(message);
+      } catch (error) {
+        announce(`Application could not be updated: ${error.message}`);
+      }
+      await renderScreen();
+    }
+    function renderCv() {
+      return window.JournovaCvBuilder.editor(cvData, profile, applications, cvTargetApplicationId);
+    }
+    function renderAssistant() {
+      return `<div class="screen-head"><div><span class="kicker">Tools</span><h1>AI Assistant</h1><p>Ask about your profile, document checklist, language or next steps.</p></div></div><section class="glass-card chat-card"><div class="message-preview" style="margin-bottom:14px">I can help explain your profile checklist and official resources. For legal or eligibility decisions, verify details with official German sources.</div><label class="field-label" for="assistantQuestion">Your question</label><textarea class="answer-control" id="assistantQuestion" rows="3" maxlength="1000" placeholder="What should I prepare for my route?"></textarea><div class="bottom-actions"><button class="next-button" type="button" data-action="ask-assistant">Ask</button></div>${assistantAnswer ? `<div class="glass-card panel-pad" style="margin-top:16px"><strong style="font-size:11px">Journova Assistant</strong><p style="font-size:12px;line-height:1.6">${escapeHtml(assistantAnswer)}</p><p class="indicative-note">Profile-aware guidance rules · no external AI service connected</p></div>` : ""}</section>`;
+    }
+    function renderSettings() {
+      return `<div class="screen-head"><div><span class="kicker">Account</span><h1>Settings</h1><p>Manage your account preferences and consent.</p></div></div><section class="glass-card panel-pad"><div class="summary-line"><span>Signed-in email</span><strong>${escapeHtml(profile.email || "")}</strong></div><label class="consent" style="margin:18px 0"><input type="checkbox" data-consent ${consent ? "checked" : ""}><span>I agree to share my details with Educaro Deutschland for counsellor follow-up.</span></label><button class="secondary-button" type="button" data-action="save-settings">Save preferences</button><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3 style="font-size:13px">Account security</h3><p class="indicative-note">Email sign-in uses expiring one-time codes. Session cookies are HttpOnly and same-site.</p><button class="secondary-button" type="button" data-nav="logout">Log out</button><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3 style="font-size:13px;color:#ffbf63">Delete account</h3><p class="indicative-note">Permanently deletes your profile, applications and uploaded documents.</p><button class="small-button" type="button" data-action="delete-account">Delete my account</button></section>`;
+    }
+    async function renderScreen() {
+      const renderers = {
+        dashboard: renderDashboard,
+        intake: renderIntake,
+        profile: () => renderProfile(),
+        documents: async () => { await refreshApplicantDocuments(); return renderDocuments(); },
+        verify: async () => { await refreshApplicantDocuments(); return renderVerification(); },
+        assessment: async () => {
+          serverAssessment = (await api("/api/assessment")).assessment;
+          return renderAssessment();
+        },
+        routes: async () => {
+          serverPathways = await api("/api/pathways");
+          return renderRoutes();
+        },
+        roadmap: async () => {
+          serverRoadmap = await api(`/api/roadmap?route=${encodeURIComponent(selectedRoute || profile.goal || "Study")}`);
+          return renderRoadmap();
+        },
+        ready: () => renderReady(),
+        "opportunities-study": () => renderOpportunities("Study"),
+        "opportunities-ausbildung": () => renderOpportunities("Ausbildung"),
+        "opportunities-job": () => renderOpportunities("Job"),
+        opportunities: () => renderOpportunities(profile.goal || "Study"),
+        applications: renderApplications,
+        cv: () => renderCv(),
+        assistant: () => renderAssistant(),
+        settings: () => renderSettings()
+      };
+      renderNavigation();
+      screenContent.innerHTML = `<div class="glass-card panel-pad">Loading your workspace…</div>`;
+      try {
+        screenContent.innerHTML = await (renderers[currentScreen] || renderDashboard)();
+      } catch (error) {
+        screenContent.innerHTML = `<div class="glass-card panel-pad"><h2>Could not load this page</h2><p class="indicative-note">${escapeHtml(error.message)}</p><button class="secondary-button" type="button" data-action="retry">Try again</button></div>`;
+      }
+      if (currentScreen === "applications") decorateApplicationsWithCv();
+      if (currentScreen === "documents") decorateGeneratedCvDocument();
+      renderTracker();
+      renderActivity();
+    }
+    function decorateApplicationsWithCv() {
+      const cards = screenContent.querySelectorAll(".doc-grid > .doc-card");
+      cards.forEach((card, index) => {
+        const application = applications[index];
+        const cv = application?.nextBestAction?.cv;
+        if (!cv) return;
+        const panel = document.createElement("section");
+        panel.className = "cv-application-check";
+        const checks = [
+          ["CV saved", cv.exists],
+          ["Key sections complete", cv.complete],
+          ["Relevant to this application", cv.relevant]
+        ];
+        checks.forEach(([label, ready]) => {
+          const line = document.createElement("div");
+          line.className = "cv-check-row";
+          const text = document.createElement("span");
+          text.textContent = label;
+          const status = document.createElement("strong");
+          status.textContent = ready ? "✓" : "Needs work";
+          status.setAttribute("aria-label", ready ? "Complete" : "Needs work");
+          line.append(text, status);
+          panel.append(line);
+        });
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "small-button";
+        button.dataset.action = "application-next-action";
+        button.dataset.target = "cv";
+        button.dataset.id = application.id;
+        button.textContent = "Optimize CV for this application";
+        panel.append(button);
+        const nba = card.querySelector(".nba-panel");
+        if (nba) nba.append(panel);
+      });
+    }
+    function decorateGeneratedCvDocument() {
+      const file = files.get("cv");
+      const card = screenContent.querySelector('[data-doc-card="cv"]');
+      if (!file?.generated || !card || card.querySelector("[data-generated-cv-download]")) return;
+      const link = document.createElement("a");
+      link.className = "small-button";
+      link.href = "/api/documents/cv/file";
+      link.dataset.generatedCvDownload = "true";
+      link.textContent = "Download saved CV";
+      card.append(link);
+    }
+    function syncDocumentReviewPolling() {
+      const shouldPoll = !appScreen.hidden && ["documents", "verify"].includes(currentScreen);
+      if (shouldPoll && !documentRefreshTimer) {
+        documentRefreshTimer = window.setInterval(async () => {
+          if (documentRefreshPromise || document.visibilityState === "hidden") return;
+          try {
+            const result = await refreshApplicantDocuments();
+            if (result.changed && ["documents", "verify"].includes(currentScreen)) {
+              await renderScreen();
+              announce("An admin review decision has been updated.");
+            }
+          } catch (error) {
+            announce(`Document review status could not be refreshed: ${error.message}`);
+          }
+        }, 8000);
+      } else if (!shouldPoll && documentRefreshTimer) {
+        window.clearInterval(documentRefreshTimer);
+        documentRefreshTimer = null;
+      }
+    }
+    function syncApplicationGuidancePolling() {
+      const shouldPoll = !appScreen.hidden && currentScreen === "applications";
+      if (shouldPoll && !applicationRefreshTimer) {
+        applicationRefreshTimer = window.setInterval(async () => {
+          const focusedControl = document.activeElement;
+          if (document.visibilityState === "hidden" || focusedControl?.matches("[data-app-requirements-text], [data-app-deadline], [data-app-status], [data-app-requirement]") || applicationRefreshPromise) return;
+          const previous = JSON.stringify(applications);
+          applicationRefreshPromise = api("/api/applications")
+            .then(async (response) => {
+              applications = response.applications;
+              if (previous !== JSON.stringify(applications) && currentScreen === "applications") {
+                await renderScreen();
+                announce("Application guidance updated using your latest profile and document reviews.");
+              }
+            })
+            .catch((error) => announce(`Application guidance could not be refreshed: ${error.message}`))
+            .finally(() => { applicationRefreshPromise = null; });
+          await applicationRefreshPromise;
+        }, 10000);
+      } else if (!shouldPoll && applicationRefreshTimer) {
+        window.clearInterval(applicationRefreshTimer);
+        applicationRefreshTimer = null;
+      }
+    }
+    async function requestCode() {
+      const email = document.getElementById("emailInput");
+      if (!email.validity.valid || !email.value.trim()) {
+        email.setCustomValidity(language === "en" ? "Enter a valid email address." : "सही ईमेल पता दर्ज करें।");
+        email.reportValidity();
+        email.addEventListener("input", () => email.setCustomValidity(""), { once: true });
+        return;
+      }
+      try {
+        await api("/api/auth/request-code", {
+          method: "POST",
+          body: JSON.stringify({ email: email.value.trim(), intent: authIntent })
+        });
+        document.getElementById("emailView").hidden = true;
+        document.getElementById("otpView").hidden = false;
+        document.getElementById("otpInput").focus();
+      } catch (error) {
+        announce(error.message);
+      }
+    }
+    async function verifyCode() {
+      const email = document.getElementById("emailInput").value.trim();
+      const code = document.getElementById("otpInput").value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        announce(language === "en" ? "Enter the six-digit code from your email." : "ईमेल से मिला छह अंकों का कोड दर्ज करें।");
+        return;
+      }
+      try {
+        const result = await api("/api/auth/verify-code", {
+          method: "POST",
+          body: JSON.stringify({ email, code, intent: authIntent })
+        });
+        profile = { ...initialProfile, ...(result.profile || {}), email: result.user.email };
+        cvData = window.JournovaCvBuilder.prefill(profile.cvData, profile);
+        consent = document.getElementById("consentCheck").checked || result.profile?.consent === true;
+        selectedRoute = profile.selectedRoute || "";
+        await refreshApplicantDocuments();
+        applications = (await api("/api/applications")).applications;
+        questionIndex = questions.findIndex(({ key }) => !profile[key]);
+        if (questionIndex < 0) questionIndex = questions.length;
+        currentScreen = "dashboard";
+        loginScreen.hidden = true;
+        appScreen.hidden = false;
+        await saveState();
+        changeScreen("dashboard");
+      } catch (error) {
+        announce(error.message);
+      }
+    }
+    async function setStage(name, agent) {
+      if (agent) updateActivity(agent);
+      if (selectedRoute) profile.selectedRoute = selectedRoute;
+      await saveState();
+      changeScreen(name);
+    }
+    function currentQuestionValue() {
+      const question = questions[questionIndex];
+      if (question.type === "choice") return profile[question.key];
+      const control = document.getElementById("questionAnswer");
+      return control ? control.value : profile[question.key];
+    }
+    function updateQuestionValue(value, persist = true) {
+      profile[questions[questionIndex].key] = value;
+      if (persist) saveState();
+      if (questions[questionIndex].type === "range") {
+        const question = questions[questionIndex];
+        const output = document.getElementById("rangeValue");
+        if (output) output.textContent = question.key === "funds" ? `€${Number(value).toLocaleString("en")}` : `${value}${question.unit === "%" ? "%" : ` ${question.unit}`}`;
+      }
+    }
+    async function nextQuestion() {
+      const value = currentQuestionValue();
+      if (value === "" || value === null || value === undefined) {
+        announce(language === "en" ? "Choose or enter an answer before continuing." : "आगे बढ़ने से पहले उत्तर दें।");
+        return;
+      }
+      profile[questions[questionIndex].key] = value;
+      await saveState();
+      if (questionIndex < questions.length - 1) {
+        questionIndex += 1;
+        renderScreen();
+      } else {
+        setStage("profile", "Intake");
+      }
+    }
+    async function uploadFile(docId, file) {
+      if (!file) return;
+      const doc = docDefinitions.find((entry) => entry.id === docId);
+      if (!doc || !requiredDocuments().some((entry) => entry.id === docId)) return;
+      renderScreen();
+      try {
+        const body = new FormData();
+        body.set("docId", docId);
+        body.set("document", file);
+        const result = await api("/api/documents", { method: "POST", body });
+        files.set(docId, {
+          name: result.document.name, size: result.document.size,
+          verification: result.document.verified ? "verified" : "attention", tip: result.document.tip,
+          reviewStatus: result.document.reviewStatus, reviewNote: result.document.reviewNote,
+          reviewedBy: result.document.reviewedBy || "", reviewedAt: result.document.reviewedAt || null,
+          verificationStatus: result.document.verificationStatus || "needs_human_review",
+          verificationAnalyzedAt: result.document.verificationAnalyzedAt || null
+        });
+        announce(result.document.verified ? `${doc.title}: server file checks passed.` : `${doc.title}: ${result.document.tip}`);
+      } catch (error) {
+        announce(`${doc.title}: ${error.message}`);
+      }
+      renderScreen();
+    }
+    async function scanAllDocuments() {
+      if (scanRunning) return;
+      scanRunning = true;
+      renderScreen();
+      updateActivity("Document");
+      try {
+        await refreshApplicantDocuments();
+      } catch (error) {
+        announce(`Document checks could not be loaded: ${error.message}`);
+      }
+      scanRunning = false;
+      updateActivity("Evaluator");
+      renderScreen();
+    }
+    function whatIfScore() {
+      const germanIndex = Number(document.querySelector('[data-whatif="german"]').value);
+      const englishIndex = Number(document.querySelector('[data-whatif="english"]').value);
+      const funds = Number(document.querySelector('[data-whatif="funds"]').value);
+      const german = ["None", "A1", "A2", "B1", "B2", "C1"][germanIndex];
+      const english = ["", "A1", "A2", "B1", "B2", "C1", "C2"][englishIndex];
+      const original = { german: profile.german, english: profile.english, funds: profile.funds };
+      profile = { ...profile, german, english, funds };
+      serverAssessment = null;
+      const data = metrics(false);
+      document.getElementById("germanOutput").textContent = german;
+      document.getElementById("englishOutput").textContent = english;
+      document.getElementById("fundsOutput").textContent = `€${funds.toLocaleString("en")}`;
+      document.getElementById("scoreRing").style.setProperty("--score", `${data.score * 3.6}deg`);
+      document.getElementById("scoreRing").dataset.score = data.score;
+      document.getElementById("scoreTier").textContent = scoreTier(data.score);
+      const rows = document.querySelectorAll(".score-row");
+      [data.academic, data.language, data.funds, data.documents, data.experience].forEach((score, index) => {
+        rows[index].querySelector(".score-row-head span:last-child").textContent = `${score}/100 · ${["30%","25%","20%","15%","10%"][index]}`;
+        rows[index].querySelector(".score-bar span").style.width = `${score}%`;
+      });
+      profile = { ...profile, ...original };
+      if (serverAssessment) serverAssessment = null;
+    }
+    async function copyJson() {
+      const content = JSON.stringify(applicantSummary(), null, 2);
+      try {
+        await navigator.clipboard.writeText(content);
+      } catch {
+        const output = document.getElementById("jsonOutput");
+        output.focus();
+        output.select();
+        const copied = document.execCommand("copy");
+        if (!copied) {
+          announce("Copy was blocked by this browser. Select the JSON and copy it manually.");
+          return;
+        }
+      }
+      announce("Applicant JSON copied to the clipboard.");
+    }
+    function downloadJson() {
+      const blob = new Blob([JSON.stringify(applicantSummary(), null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "journova-applicant-profile.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+    function showCvAnalysis(mode) {
+      const panel = screenContent.querySelector("[data-cv-analysis]");
+      if (!panel) return;
+      const result = window.JournovaCvBuilder.analysis(cvData, profile);
+      panel.hidden = false;
+      const checks = result.checks.map(([label, complete]) =>
+        `<div class="cv-check-row"><span>${escapeHtml(label)}</span><strong>${complete ? "✓ Complete" : "⚠ Add details"}</strong></div>`
+      ).join("");
+      const recommendations = result.recommendations.length
+        ? result.recommendations.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
+        : "<li>Core sections are present. Review every fact before applying.</li>";
+      const ats = result.atsScore === null
+        ? `<p class="indicative-note">Add a target title or role description to compare keywords. ${result.atsNotes.map(escapeHtml).join(" ")}</p>`
+        : `<p><strong>ATS keyword coverage: ${result.atsScore}%</strong></p><p class="cv-match-terms">Matched: ${escapeHtml(result.matched.join(", ") || "none")}<br>Not found in your CV: ${escapeHtml(result.missing.join(", ") || "none")}</p><p class="indicative-note">${result.atsNotes.map(escapeHtml).join(" ")}</p>`;
+      panel.innerHTML = mode === "ats"
+        ? `<strong>ATS compatibility · keyword comparison</strong>${ats}`
+        : `<strong>CV completeness · ${result.score}/100</strong>${checks}<ul>${recommendations}</ul><p class="indicative-note">This local checklist is not an eligibility or hiring score. No external AI service is connected.</p>`;
+    }
+    function cvHasContent() {
+      return Boolean(cvData.personal.name || cvData.personal.title || cvData.summary ||
+        cvData.education.some((item) => Object.values(item).some(Boolean)) ||
+        cvData.skills.some((item) => item.name) ||
+        cvData.projects.some((item) => Object.values(item).some(Boolean)) ||
+        cvData.experience.some((item) => Object.values(item).some(Boolean)));
+    }
+    async function saveCv() {
+      if (!cvHasContent()) {
+        announce("Add some CV details before saving.");
+        return;
+      }
+      const existingCv = files.get("cv");
+      window.clearTimeout(saveTimer);
+      const button = screenContent.querySelector('[data-action="cv-save"]');
+      if (button) button.disabled = true;
+      try {
+        await saveQueue;
+        profile.cvData = cvData;
+        const saved = await api("/api/profile", {
+          method: "PUT",
+          body: JSON.stringify({ profile, consent })
+        });
+        profile = { ...profile, ...saved.profile, email: profile.email };
+        cvData = window.JournovaCvBuilder.normalize(saved.profile.cvData);
+        if (existingCv && !window.confirm("A CV file already exists in Documents. Replace that CV document with this saved version?")) {
+          announce("CV saved to your profile. The existing Documents file was left unchanged.");
+          renderScreen();
+          return;
+        }
+        const result = await api("/api/documents/cv", { method: "POST", body: "{}" });
+        await refreshApplicantDocuments();
+        renderScreen();
+        announce(result.document.generated ? "CV saved to your profile and Documents." : "CV saved.");
+      } catch (error) {
+        announce(`CV could not be saved: ${error.message}`);
+      } finally {
+        if (button?.isConnected) button.disabled = false;
+      }
+    }
+    function downloadCvText() {
+      const content = window.JournovaCvBuilder.plainText(cvData, profile);
+      if (!content) {
+        announce("Add CV details before downloading.");
+        return;
+      }
+      const url = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "journova-cv.txt";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function applyLanguage(nextLanguage) {
+      language = nextLanguage;
+      root.lang = language;
+      languageLabel.textContent = language.toUpperCase();
+      document.querySelectorAll("[data-en], [data-hi]").forEach((element) => {
+        const text = element.dataset[language];
+        if (text) element.textContent = text;
+      });
+      document.querySelectorAll("[data-en-html], [data-hi-html]").forEach((element) => {
+        element.innerHTML = element.dataset[`${language}Html`];
+      });
+      themeLabel.textContent = root.dataset.theme === "dark" ? (language === "en" ? "Dark" : "डार्क") : (language === "en" ? "Light" : "लाइट");
+      themeToggle.setAttribute("aria-label", language === "en" ? (root.dataset.theme === "dark" ? "Switch to light mode" : "Switch to dark mode") : (root.dataset.theme === "dark" ? "लाइट मोड पर जाएँ" : "डार्क मोड पर जाएँ"));
+      languageToggle.setAttribute("aria-label", language === "en" ? "Switch language" : "भाषा बदलें");
+      renderTracker();
+      if (currentScreen !== "login") renderScreen();
+    }
+
+    languageToggle.addEventListener("click", () => applyLanguage(language === "en" ? "hi" : "en"));
+    themeToggle.addEventListener("click", () => {
+      const nextTheme = root.dataset.theme === "dark" ? "light" : "dark";
+      root.dataset.theme = nextTheme;
+      themeLabel.textContent = nextTheme === "dark" ? (language === "en" ? "Dark" : "डार्क") : (language === "en" ? "Light" : "लाइट");
+      themeToggle.setAttribute("aria-label", language === "en" ? (nextTheme === "dark" ? "Switch to light mode" : "Switch to dark mode") : (nextTheme === "dark" ? "लाइट मोड पर जाएँ" : "डार्क मोड पर जाएँ"));
+      themeIcon.innerHTML = nextTheme === "dark"
+        ? '<path d="M20 15.2A8 8 0 0 1 8.8 4a8.2 8.2 0 1 0 11.2 11.2Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'
+        : '<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>';
+    });
+    document.querySelectorAll("[data-auth-intent]").forEach((button) => {
+      button.addEventListener("click", () => {
+        authIntent = button.dataset.authIntent;
+        document.querySelectorAll("[data-auth-intent]").forEach((tab) => {
+          const active = tab === button;
+          tab.classList.toggle("active", active);
+          tab.setAttribute("aria-selected", String(active));
+        });
+        const heading = document.querySelector("#emailView h2");
+        const intro = document.querySelector("#emailView .card-intro");
+        const submitLabel = document.querySelector("#emailForm .primary-button span");
+        heading.textContent = authIntent === "register" ? (language === "en" ? "Create your account." : "अपना खाता बनाएँ।") : (language === "en" ? "Welcome back." : "वापस स्वागत है।");
+        intro.textContent = authIntent === "register" ? (language === "en" ? "Verify your email to create your account." : "खाता बनाने के लिए अपना ईमेल सत्यापित करें।") : (language === "en" ? "We'll email you a one-time code to continue." : "आगे बढ़ने के लिए हम आपको ईमेल पर वन-टाइम कोड भेजेंगे।");
+        submitLabel.textContent = authIntent === "register" ? (language === "en" ? "Create account" : "खाता बनाएँ") : (language === "en" ? "Continue" : "आगे बढ़ें");
+      });
+    });
+    document.getElementById("emailForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      requestCode();
+    });
+    document.getElementById("otpForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      verifyCode();
+    });
+    document.getElementById("backToEmail").addEventListener("click", () => {
+      document.getElementById("otpView").hidden = true;
+      document.getElementById("emailView").hidden = false;
+      document.getElementById("otpInput").value = "";
+    });
+    document.getElementById("resendCode").addEventListener("click", requestCode);
+    document.getElementById("consentCheck").addEventListener("change", (event) => {
+      consent = event.target.checked;
+      saveState();
+    });
+    document.getElementById("appNavigation").addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-nav]");
+      if (!button) return;
+      const page = button.dataset.nav;
+      if (page === "logout") {
+        try {
+          await api("/api/auth/logout", { method: "POST" });
+          profile = { ...initialProfile };
+          files.clear();
+          currentScreen = "login";
+          document.getElementById("emailView").hidden = false;
+          document.getElementById("otpView").hidden = true;
+          changeScreen("login");
+          announce("You are signed out.");
+        } catch (error) {
+          announce(error.message);
+        }
+        return;
+      }
+      navigateTo(page);
+    });
+    function navigateTo(page) {
+      if (page === "intake" && questionIndex >= questions.length) page = "profile";
+      changeScreen(page);
+    }
+    screenContent.addEventListener("click", async (event) => {
+      const navButton = event.target.closest("[data-nav]");
+      if (navButton) {
+        navigateTo(navButton.dataset.nav);
+        return;
+      }
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      if (action === "retry") renderScreen();
+      else if (action === "answer-choice") {
+        profile[questions[questionIndex].key] = button.dataset.value;
+        saveState();
+        renderScreen();
+      } else if (action === "next-question") nextQuestion();
+      else if (action === "undo") {
+        if (questionIndex > 0) {
+          questionIndex -= 1;
+          profile[questions[questionIndex].key] = "";
+          renderScreen();
+        }
+      } else if (action === "edit-field") {
+        openProfileEditor(button.dataset.field);
+      } else if (action === "to-documents") setStage("documents", "Document");
+      else if (action === "to-verify") setStage("verify", "Evaluator");
+      else if (action === "scan") await scanAllDocuments();
+      else if (action === "reupload") {
+        const input = screenContent.querySelector(`[data-upload="${button.dataset.doc}"]`);
+        if (input) input.click();
+      } else if (action === "to-assessment") setStage("assessment", "Evaluator");
+      else if (action === "to-routes") setStage("routes", "Pathway");
+      else if (action === "select-route") {
+        selectedRoute = button.dataset.route;
+        profile.selectedRoute = selectedRoute;
+        await saveState();
+        updateActivity("Pathway");
+        await setStage("roadmap", "Planner");
+      } else if (action === "to-ready") setStage("ready", "Handoff");
+      else if (action === "copy-json") await copyJson();
+      else if (action === "download-json") downloadJson();
+      else if (action === "send-handoff") {
+        if (!consent) return;
+        try {
+          const result = await api("/api/handoffs", { method: "POST", body: "{}" });
+          announce(result.message);
+        } catch (error) {
+          announce(error.message);
+        }
+      } else if (action === "add-application") {
+        const form = screenContent.querySelector("#applicationForm");
+        form.hidden = false;
+        form.querySelector("#applicationTitle").focus();
+      } else if (action === "cancel-application") {
+        const form = screenContent.querySelector("#applicationForm");
+        form.reset();
+        form.hidden = true;
+      } else if (action === "application-next-action") {
+        const target = button.dataset.target;
+        if (target === "cv") {
+          const application = applications.find((item) => item.id === button.dataset.id);
+          cvTargetApplicationId = application?.id || "";
+          if (application) {
+            const routeType = { Study: "University", Ausbildung: "Ausbildung", Job: "Job" }[application.route] || "Job";
+            cvData.target = {
+              ...cvData.target,
+              type: routeType,
+              title: application.title,
+              description: (application.requirements || []).map((item) => item.label).join("\n") || cvData.target.description
+            };
+            profile.cvData = cvData;
+          }
+          navigateTo("cv");
+        } else if (target === "profile" || target === "documents") {
+          navigateTo(target);
+        } else {
+          const selector = target === "deadline"
+            ? `[data-app-deadline="${CSS.escape(button.dataset.id)}"]`
+            : `[data-app-requirements-text="${CSS.escape(button.dataset.id)}"]`;
+          const control = screenContent.querySelector(selector);
+          control?.scrollIntoView({ behavior: "smooth", block: "center" });
+          control?.focus({ preventScroll: true });
+        }
+      } else if (action === "save-app-requirements") {
+        const id = button.dataset.id;
+        const application = applications.find((item) => item.id === id);
+        const editor = screenContent.querySelector(`[data-app-requirements-text="${CSS.escape(id)}"]`);
+        if (!application || !editor) return;
+        const priorRequirements = application.requirements || [];
+        const requirements = editor.value.split(/\r?\n/).map((label) => label.trim()).filter(Boolean).map((label) => {
+          const prior = priorRequirements.find((item) => item.label.toLowerCase() === label.toLowerCase());
+          return prior ? { ...prior, label } : { label, completed: false };
+        });
+        await updateApplicationRecord(id, { requirements }, "Application requirements saved.");
+      } else if (action === "delete-application") {
+        try {
+          await api(`/api/applications/${encodeURIComponent(button.dataset.id)}`, { method: "DELETE" });
+          renderScreen();
+        } catch (error) {
+          announce(error.message);
+        }
+      } else if (action === "save-settings") {
+        consent = Boolean(screenContent.querySelector("[data-consent]")?.checked);
+        await saveState();
+        renderScreen();
+        announce("Account preferences saved.");
+      } else if (action === "delete-account") {
+        if (!window.confirm("Delete your account, profile, applications and uploaded documents? This cannot be undone.")) return;
+        try {
+          await api("/api/account/delete", { method: "POST", body: "{}" });
+          profile = { ...initialProfile };
+          files.clear();
+          applications = [];
+          document.getElementById("emailView").hidden = false;
+          document.getElementById("otpView").hidden = true;
+          changeScreen("login");
+          announce("Your account and stored files were deleted.");
+        } catch (error) {
+          announce(error.message);
+        }
+      } else if (action === "ask-assistant") {
+        const question = document.getElementById("assistantQuestion").value;
+        try {
+          const result = await api("/api/assistant", { method: "POST", body: JSON.stringify({ question }) });
+          assistantAnswer = result.answer;
+          renderScreen();
+        } catch (error) {
+          announce(error.message);
+        }
+      } else if (action === "cv-add") {
+        const entry = window.JournovaCvBuilder.createEntry(button.dataset.section);
+        if (!entry || !Array.isArray(cvData[button.dataset.section])) return;
+        cvData[button.dataset.section].push(entry);
+        profile.cvData = cvData;
+        renderScreen();
+      } else if (action === "cv-remove") {
+        const entries = cvData[button.dataset.section];
+        const index = Number(button.dataset.index);
+        if (!Array.isArray(entries) || !Number.isInteger(index) || index < 0 || index >= entries.length) return;
+        entries.splice(index, 1);
+        profile.cvData = cvData;
+        scheduleSaveState();
+        renderScreen();
+      } else if (action === "cv-summary") {
+        const summary = window.JournovaCvBuilder.generateSummary(cvData, profile);
+        if (!summary) {
+          announce("Add education, a field, a project or skills before generating a factual summary.");
+          return;
+        }
+        cvData.summary = summary;
+        profile.cvData = cvData;
+        scheduleSaveState();
+        renderScreen();
+        announce("Draft summary generated from your details. Review and edit it.");
+      } else if (action === "cv-improve") {
+        const improved = window.JournovaCvBuilder.improveText(button.dataset.path.split(".").reduce((value, key) => value?.[key], cvData));
+        if (!improved) {
+          announce("Add a description before using the writing assist.");
+          return;
+        }
+        window.JournovaCvBuilder.setPath(cvData, button.dataset.path, improved);
+        profile.cvData = cvData;
+        scheduleSaveState();
+        renderScreen();
+        announce("Wording was tidied without adding facts. Review it before use.");
+      } else if (action === "cv-suggest") {
+        const suggestions = window.JournovaCvBuilder.skillSuggestions(cvData, profile);
+        const container = screenContent.querySelector("[data-cv-suggestions]");
+        if (!suggestions.length) {
+          container.textContent = "No additional skill terms found in your entered projects or profile.";
+          return;
+        }
+        container.innerHTML = suggestions.map((item) => `<button class="cv-suggestion" type="button" data-action="cv-add-suggested" data-category="${escapeHtml(item.category)}" data-skill="${escapeHtml(item.name)}">${escapeHtml(item.name)} · ${escapeHtml(item.source)} ＋</button>`).join("");
+      } else if (action === "cv-add-suggested") {
+        if (!cvData.skills.some((item) => item.name.toLowerCase() === button.dataset.skill.toLowerCase())) {
+          cvData.skills.push({ category: button.dataset.category, name: button.dataset.skill });
+          profile.cvData = cvData;
+          scheduleSaveState();
+        }
+        renderScreen();
+      } else if (action === "cv-analyze") {
+        showCvAnalysis("complete");
+      } else if (action === "cv-ats") {
+        showCvAnalysis("ats");
+      } else if (action === "cv-optimize") {
+        const application = applications.find((item) => item.id === cvTargetApplicationId);
+        const type = button.dataset.targetType;
+        cvData.target.type = type;
+        if (application) {
+          cvData.target.title = application.title;
+          cvData.target.description = (application.requirements || []).map((item) => item.label).join("\n") || cvData.target.description;
+        }
+        if (type === "Ausbildung" || type === "University") cvData.europeanMode = true;
+        profile.cvData = cvData;
+        scheduleSaveState();
+        renderScreen();
+        announce(`CV analysis is now focused on ${type}. Add only information that is true for you.`);
+      } else if (action === "cv-save") {
+        await saveCv();
+      } else if (action === "cv-download-text") {
+        downloadCvText();
+      } else if (action === "cv-pdf" || action === "cv-print") {
+        window.print();
+      }
+    });
+    screenContent.addEventListener("submit", async (event) => {
+      if (event.target.id !== "applicationForm") return;
+      event.preventDefault();
+      const form = event.target;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const values = Object.fromEntries(new FormData(form));
+      const body = {
+        title: values.title,
+        organization: values.organization,
+        route: values.route,
+        deadline: values.deadline || null,
+        requirements: values.requirementsText.split(/\r?\n/).map((item) => item.trim()).filter(Boolean)
+      };
+      submitButton.disabled = true;
+      try {
+        const result = await api("/api/applications", {
+          method: "POST",
+          body: JSON.stringify(body)
+        });
+        applications.unshift(result.application);
+        announce("Application saved.");
+        await renderScreen();
+      } catch (error) {
+        submitButton.disabled = false;
+        announce(`Application could not be saved: ${error.message}`);
+      }
+    });
+    screenContent.addEventListener("input", (event) => {
+      const target = event.target;
+      if (target.matches("#questionAnswer")) updateQuestionValue(target.value, false);
+      else if (target.matches("[data-whatif]")) whatIfScore();
+      else if (target.matches("[data-cv-path]")) {
+        const value = target.type === "checkbox" ? target.checked : target.value;
+        window.JournovaCvBuilder.setPath(cvData, target.dataset.cvPath, value);
+        profile.cvData = { ...cvData };
+        scheduleSaveState();
+        const preview = screenContent.querySelector("[data-cv-preview-root]");
+        if (preview) preview.innerHTML = window.JournovaCvBuilder.renderPreview(cvData, profile);
+        const match = screenContent.querySelector("[data-cv-match]");
+        if (match) match.textContent = window.JournovaCvBuilder.matchSummary(cvData);
+        const analysis = screenContent.querySelector("[data-cv-analysis]");
+        if (analysis && !analysis.hidden) showCvAnalysis(analysis.textContent.includes("ATS compatibility") ? "ats" : "complete");
+      }
+    });
+    screenContent.addEventListener("change", async (event) => {
+      const input = event.target;
+      if (input.matches("[data-upload]") && input.files && input.files[0]) await uploadFile(input.dataset.upload, input.files[0]);
+      else if (input.matches("#questionAnswer")) updateQuestionValue(input.value);
+      else if (input.matches("[data-cv-application]")) {
+        cvTargetApplicationId = input.value;
+        const application = applications.find((item) => item.id === cvTargetApplicationId);
+        if (application) {
+          cvData.target.type = { Study: "University", Ausbildung: "Ausbildung", Job: "Job" }[application.route] || "Job";
+          cvData.target.title = application.title;
+          if (!cvData.target.description) cvData.target.description = (application.requirements || []).map((item) => item.label).join("\n");
+          profile.cvData = cvData;
+        }
+        scheduleSaveState();
+        renderScreen();
+      }
+      else if (input.matches("[data-consent]")) {
+        consent = input.checked;
+        await saveState();
+        renderScreen();
+      }
+      else if (input.matches("[data-app-status]")) {
+        await updateApplicationRecord(input.dataset.appStatus, { status: input.value }, "Application status updated.");
+      }
+      else if (input.matches("[data-app-deadline]")) {
+        await updateApplicationRecord(input.dataset.appDeadline, { deadline: input.value || null }, "Application deadline updated.");
+      }
+      else if (input.matches("[data-app-requirement]")) {
+        const application = applications.find((item) => item.id === input.dataset.appId);
+        if (!application) return;
+        const requirements = (application.requirements || []).map((requirement) => ({
+          ...requirement,
+          completed: requirement.id === input.dataset.appRequirement ? input.checked : requirement.completed
+        }));
+        await updateApplicationRecord(input.dataset.appId, { requirements }, "Requirement checklist updated.");
+      }
+    });
+    screenContent.addEventListener("dragover", (event) => {
+      const card = event.target.closest("[data-doc-card]");
+      if (card) { event.preventDefault(); card.classList.add("dragover"); }
+    });
+    screenContent.addEventListener("dragleave", (event) => {
+      const card = event.target.closest("[data-doc-card]");
+      if (card) card.classList.remove("dragover");
+    });
+    screenContent.addEventListener("drop", async (event) => {
+      const card = event.target.closest("[data-doc-card]");
+      if (!card) return;
+      event.preventDefault();
+      card.classList.remove("dragover");
+      const droppedFile = event.dataTransfer.files[0];
+      if (droppedFile) await uploadFile(card.dataset.docCard, droppedFile);
+    });
+
+    renderTracker();
+    renderActivity();
+    loadState();
+  </script>
+</body>
+</html>

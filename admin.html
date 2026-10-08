@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d19">
+  <title>Document Review | Journova AI</title>
+  <style>
+    :root { color-scheme: dark; --page:#090d19; --surface:#111827; --line:#253149; --text:#f4f6fb; --muted:#a4aec1; --accent:#9dff70; --amber:#ffbf63; --red:#ff8d91; font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--text); background:radial-gradient(ellipse at 10% -15%,rgba(93,133,255,.16),transparent 40%),var(--page); }
+    button,input,textarea,select { font:inherit; }
+    button,a { -webkit-tap-highlight-color:transparent; }
+    .shell { width:min(1120px,calc(100% - 36px)); margin:auto; }
+    header { min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:16px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:11px; color:var(--text); text-decoration:none; font-weight:850; letter-spacing:.12em; }
+    .brand-mark { width:37px; height:37px; display:grid; place-items:center; border:1px solid rgba(157,255,112,.38); border-radius:12px; color:var(--accent); box-shadow:0 0 22px rgba(157,255,112,.12); font-size:17px; }
+    .brand small { display:block; color:var(--muted); font-size:9px; font-weight:650; letter-spacing:.16em; }
+    .header-actions { display:flex; align-items:center; gap:10px; }
+    .header-email { color:var(--muted); font-size:12px; }
+    main { padding:34px 0 56px; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { margin-bottom:7px; font-size:clamp(27px,5vw,38px); letter-spacing:-.04em; }
+    .intro { margin-bottom:23px; color:var(--muted); font-size:13px; }
+    .notice { margin:15px 0 24px; padding:12px 14px; border:1px solid rgba(255,191,99,.25); border-radius:12px; color:#e5d4b8; background:rgba(255,191,99,.055); font-size:11px; line-height:1.55; }
+    .notice strong { color:var(--amber); }
+    .stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
+    .stat,.review-card,.auth-card { border:1px solid var(--line); border-radius:16px; background:linear-gradient(145deg,rgba(255,255,255,.035),transparent),var(--surface); }
+    .stat { padding:15px 17px; }
+    .stat span { color:var(--muted); font-size:11px; }
+    .stat strong { display:block; margin-top:3px; font-size:25px; line-height:1.2; }
+    .controls { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 0 12px; }
+    .controls label { color:var(--muted); font-size:11px; }
+    select,input,textarea { width:100%; min-height:43px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; outline:none; color:var(--text); background:#0d1422; }
+    select:focus,input:focus,textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(157,255,112,.1); }
+    .filter { width:200px; }
+    .queue { display:grid; gap:12px; }
+    .review-card { padding:18px; }
+    .card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+    .doc-title { display:flex; align-items:center; gap:10px; min-width:0; }
+    .doc-icon { width:38px; height:38px; flex:none; display:grid; place-items:center; border-radius:12px; background:rgba(157,255,112,.08); font-size:19px; }
+    .doc-title h2 { overflow-wrap:anywhere; margin:0; font-size:15px; }
+    .doc-title p,.meta { margin:3px 0 0; color:var(--muted); font-size:11px; overflow-wrap:anywhere; }
+    .badge { flex:none; padding:5px 9px; border:1px solid var(--line); border-radius:999px; color:var(--amber); background:rgba(255,191,99,.07); font-size:10px; font-weight:750; }
+    .badge.approved { color:var(--accent); border-color:rgba(157,255,112,.24); background:rgba(157,255,112,.06); }
+    .badge.needs_changes { color:var(--red); border-color:rgba(255,141,145,.24); background:rgba(255,141,145,.06); }
+    .badge.suspicious,.badge.rejected { color:var(--red); border-color:rgba(255,141,145,.24); background:rgba(255,141,145,.06); }
+    .badge.verified { color:var(--accent); border-color:rgba(157,255,112,.24); background:rgba(157,255,112,.06); }
+    .meta-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:15px 0; padding:12px; border:1px solid rgba(255,255,255,.055); border-radius:11px; background:rgba(4,8,18,.22); }
+    .meta-grid span { display:block; color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+    .meta-grid strong { display:block; margin-top:3px; font-size:11px; overflow-wrap:anywhere; }
+    .tech-note { margin:0 0 12px; color:var(--muted); font-size:11px; }
+    .tech-note strong { color:var(--text); }
+    .analysis { margin:12px 0; padding:13px; border:1px solid rgba(255,191,99,.2); border-radius:11px; background:rgba(255,191,99,.035); }
+    .analysis h3 { margin:0 0 8px; font-size:12px; }
+    .analysis p,.analysis li { color:var(--muted); font-size:10px; line-height:1.55; }
+    .analysis ul { margin:6px 0 0; padding-left:18px; }
+    .analysis-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 16px; margin-top:9px; }
+    .analysis-grid p { margin:0; }
+    .review-note { min-height:70px; resize:vertical; }
+    .actions { display:flex; align-items:center; flex-wrap:wrap; gap:9px; margin-top:12px; }
+    .button,.file-link { min-height:40px; display:inline-flex; justify-content:center; align-items:center; gap:7px; padding:0 13px; border:1px solid var(--line); border-radius:10px; color:var(--text); background:transparent; text-decoration:none; cursor:pointer; font-size:11px; font-weight:720; }
+    .button:hover,.file-link:hover { border-color:#52627e; }
+    .button:disabled { opacity:.55; cursor:wait; }
+    .button.approve { color:#14210d; border-color:var(--accent); background:var(--accent); }
+    .button.request { color:#24180a; border-color:var(--amber); background:var(--amber); }
+    .button.alert { color:#2b1114; border-color:var(--red); background:var(--red); }
+    .button.quiet { color:var(--muted); }
+    .empty { padding:40px 20px; border:1px dashed var(--line); border-radius:15px; color:var(--muted); text-align:center; }
+    .auth-wrap { display:grid; min-height:65vh; place-items:center; }
+    .auth-card { width:min(100%,430px); padding:24px; }
+    .auth-card h2 { margin-bottom:5px; font-size:21px; }
+    .auth-card p { margin-bottom:20px; color:var(--muted); font-size:12px; }
+    .field { display:grid; gap:6px; margin:13px 0; color:var(--muted); font-size:11px; }
+    .auth-card .button { width:100%; margin-top:6px; }
+    .toast { position:fixed; right:20px; bottom:20px; max-width:min(420px,calc(100% - 40px)); padding:12px 16px; transform:translateY(12px); opacity:0; pointer-events:none; border:1px solid var(--line); border-radius:12px; background:#131d2e; box-shadow:0 15px 40px #0006; transition:.2s ease; font-size:12px; }
+    .toast.show { transform:translateY(0); opacity:1; }
+    [hidden] { display:none !important; }
+    @media(max-width:620px) {
+      .shell { width:calc(100% - 26px); }
+      header { min-height:66px; }
+      .header-email { display:none; }
+      main { padding-top:25px; }
+      .stats { gap:7px; }
+      .stat { padding:12px 10px; }
+      .stat strong { font-size:21px; }
+      .stat span { font-size:9px; }
+      .meta-grid { grid-template-columns:1fr 1fr; }
+      .card-top { align-items:flex-start; }
+      .review-card { padding:14px; }
+      .filter { width:165px; }
+      .file-link,.actions .button { flex:1; }
+    }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition-duration:.01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="shell">
+    <a class="brand" href="/" aria-label="Journova applicant site">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span>JOURNOVA AI<small>DOCUMENT REVIEW</small></span>
+    </a>
+    <div class="header-actions">
+      <span class="header-email" id="adminEmail"></span>
+      <button class="button quiet" id="logoutButton" type="button" hidden>Sign out</button>
+    </div>
+  </header>
+  <main class="shell">
+    <section id="authView" class="auth-wrap" hidden>
+      <div class="auth-card">
+        <h2 id="authTitle">Admin sign-in</h2>
+        <p id="authIntro">Use an authorised admin email. A one-time code will be sent to your inbox.</p>
+        <form id="emailForm">
+          <label class="field">Admin email<input id="emailInput" type="email" autocomplete="email" placeholder="reviewer@example.com" required></label>
+          <button class="button approve" type="submit">Send sign-in code</button>
+        </form>
+        <form id="codeForm" hidden>
+          <label class="field">Six-digit code<input id="codeInput" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+          <button class="button approve" type="submit">Verify and open portal</button>
+          <button class="button quiet" id="backButton" type="button">Use another email</button>
+        </form>
+        <p class="notice"><strong>Admin-only:</strong> access is granted only to addresses listed in the server's <code>ADMIN_EMAILS</code>.</p>
+      </div>
+    </section>
+    <section id="portalView" hidden>
+      <h1>Document review queue</h1>
+      <p class="intro">Inspect each private upload and its screening report, then record a review decision with evidence or a clear applicant action.</p>
+      <p class="notice"><strong>Review scope:</strong> “Approved” means a human visual/readability review only. It does not establish that a certificate is genuine or guarantee official acceptance.</p>
+      <p class="notice"><strong>To verify authenticity:</strong> use the issuing university, board, language-test provider or other authority’s official certificate lookup/QR service when available. Otherwise contact the issuer using details found independently on its official website—not only details printed on the certificate. Check certificate/reference numbers and applicant details with the issuer. A QR code or good-looking scan alone is not proof.</p>
+      <div class="stats" aria-label="Review totals">
+        <article class="stat"><span>Awaiting review</span><strong id="pendingCount">0</strong></article>
+        <article class="stat"><span>Re-upload requested</span><strong id="changesCount">0</strong></article>
+        <article class="stat"><span>Visual review approved</span><strong id="approvedCount">0</strong></article>
+      </div>
+      <div class="controls">
+        <strong id="queueHeading">All submissions</strong>
+        <label class="filter">Show
+          <select id="statusFilter" aria-label="Filter by review status">
+            <option value="pending">Awaiting review</option>
+            <option value="needs_changes">Re-upload requested</option>
+            <option value="approved">Visual review approved</option>
+            <option value="verified">Verified with issuer</option>
+            <option value="suspicious">Additional review</option>
+            <option value="rejected">Not accepted</option>
+            <option value="all">All documents</option>
+          </select>
+        </label>
+      </div>
+      <section class="queue" id="queue" aria-live="polite"></section>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    const authView = document.getElementById("authView");
+    const portalView = document.getElementById("portalView");
+    const queue = document.getElementById("queue");
+    const statusFilter = document.getElementById("statusFilter");
+    const emailForm = document.getElementById("emailForm");
+    const codeForm = document.getElementById("codeForm");
+    const emailInput = document.getElementById("emailInput");
+    const codeInput = document.getElementById("codeInput");
+    const toast = document.getElementById("toast");
+    const typeNames = { passport:"Passport", academic:"Marksheets / degree", cv:"CV", motivation:"Motivation letter", language:"Language certificate", aps:"APS certificate", experience:"Experience letters" };
+    const typeIcons = { passport:"🛂", academic:"🎓", cv:"🧾", motivation:"✍️", language:"🌐", aps:"✅", experience:"🏢" };
+    let documents = [];
+    let adminAddress = "";
+    let toastTimer;
+
+    async function api(url, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      if (options.body) headers["Content-Type"] = "application/json";
+      const response = await fetch(url, { credentials:"same-origin", ...options, headers });
+      const body = await response.text();
+      let result = {};
+      if (body) {
+        try { result = JSON.parse(body); }
+        catch { throw new Error(`Server returned an unexpected response (${response.status}).`); }
+      }
+      if (!response.ok) throw new Error(result.error || `Request failed (${response.status}).`);
+      return result;
+    }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[char]);
+    }
+    function announce(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 4200);
+    }
+    function setSignedIn(email) {
+      adminAddress = email;
+      document.getElementById("adminEmail").textContent = email;
+      document.getElementById("logoutButton").hidden = false;
+      authView.hidden = true;
+      portalView.hidden = false;
+      loadQueue();
+    }
+    async function initialize() {
+      try {
+        const health = await api("/api/health");
+        if (health.localDevelopmentSession) {
+          const session = await api("/api/dev/admin-session", { method:"POST", body:"{}" });
+          setSignedIn(session.user.email);
+          announce("Local admin preview session. It is available only in development.");
+          return;
+        }
+      } catch (error) {
+        announce(error.message);
+      }
+      try {
+        const result = await api("/api/admin/me");
+        setSignedIn(result.user.email);
+      } catch (error) {
+        if (error.message !== "Admin sign-in is required.") announce(error.message);
+        authView.hidden = false;
+      }
+    }
+    function renderQueue() {
+      const filter = statusFilter.value;
+      const shown = filter === "all" ? documents : documents.filter((doc) => doc.reviewStatus === filter);
+      const labels = { pending:"Awaiting review", approved:"Visual review approved", needs_changes:"Re-upload requested", verified:"Verified with issuer", suspicious:"Additional review", rejected:"Not accepted" };
+      document.getElementById("queueHeading").textContent = filter === "all" ? "All submissions" : labels[filter];
+      if (!shown.length) {
+        queue.innerHTML = `<div class="empty">${filter === "pending" ? "Nothing is waiting for review." : "No documents in this category."}</div>`;
+        return;
+      }
+      queue.innerHTML = shown.map((doc) => {
+        const date = new Date(doc.uploadedAt).toLocaleString();
+        const review = labels[doc.reviewStatus] || "Awaiting review";
+        const report = doc.verificationReport || {};
+        const checks = Array.isArray(report.checks) ? report.checks : [];
+        const findings = Array.isArray(report.findings) ? report.findings : [];
+        const extracted = report.extractedFields && typeof report.extractedFields === "object" ? Object.entries(report.extractedFields) : [];
+        return `<article class="review-card" data-id="${doc.id}">
+          <div class="card-top"><div class="doc-title"><span class="doc-icon">${typeIcons[doc.type] || "📄"}</span><div><h2>${escapeHtml(typeNames[doc.type] || doc.type)}</h2><p>${escapeHtml(doc.name)}</p></div></div><span class="badge ${escapeHtml(doc.reviewStatus)}">${escapeHtml(review)}</span></div>
+          <div class="meta-grid">
+            <div><span>Applicant</span><strong>${escapeHtml(doc.applicant.email)}</strong></div>
+            <div><span>Route</span><strong>${escapeHtml(doc.applicant.selectedRoute || doc.applicant.goal || "Not set")}</strong></div>
+            <div><span>Uploaded</span><strong>${escapeHtml(date)}</strong></div>
+            <div><span>File size</span><strong>${(doc.size / 1024 / 1024).toFixed(2)} MB</strong></div>
+            <div><span>Technical check</span><strong>${doc.technicalCheck === "passed" ? "Passed" : "Needs attention"}</strong></div>
+            <div><span>Last review</span><strong>${doc.reviewedAt ? escapeHtml(new Date(doc.reviewedAt).toLocaleString()) : "Not reviewed"}</strong></div>
+          </div>
+          <p class="tech-note"><strong>Technical check note:</strong> ${escapeHtml(doc.technicalNote || "No additional note.")}</p>
+          <section class="analysis" aria-label="Automated screening report">
+            <h3>Automated screening · ${escapeHtml(String(doc.verificationStatus || "needs_human_review").replaceAll("_", " "))}</h3>
+            <p>Risk: ${escapeHtml(doc.verificationRisk || "unassessed")} · Confidence: ${doc.verificationConfidence === null || doc.verificationConfidence === undefined ? "Not calculated" : `${escapeHtml(doc.verificationConfidence)}%`} · ${doc.verificationAnalyzedAt ? `Screened ${escapeHtml(new Date(doc.verificationAnalyzedAt).toLocaleString())}` : "No screening timestamp"}</p>
+            <p>This is not an AI authenticity assessment. No OCR or issuer lookup is configured. A human reviewer must inspect the file; authenticity requires an official issuer channel where available.</p>
+            <div class="analysis-grid">${checks.map((check) => `<p><strong>${escapeHtml(check.name)}:</strong> ${escapeHtml(check.status)} — ${escapeHtml(check.detail)}</p>`).join("")}</div>
+            ${extracted.length ? `<p><strong>Plain-text labelled fields (not OCR):</strong></p><ul>${extracted.map(([key, value]) => `<li>${escapeHtml(key)}: ${escapeHtml(value)}</li>`).join("")}</ul>` : ""}
+            ${findings.length ? `<p><strong>Screening notes:</strong></p><ul>${findings.map((finding) => `<li>${escapeHtml(finding)}</li>`).join("")}</ul>` : ""}
+            ${report.documentCompleteness ? `<p>Profile fields complete: ${escapeHtml(report.profileCompletion?.percent ?? 0)}% · Required documents present: ${escapeHtml(report.documentCompleteness.uploaded ?? 0)}/${escapeHtml(report.documentCompleteness.required ?? 0)} · Missing: ${escapeHtml((report.documentCompleteness.missing || []).join(", ") || "None")}</p>` : ""}
+          </section>
+          ${doc.reviewNote ? `<p class="tech-note"><strong>Previous reviewer note:</strong> ${escapeHtml(doc.reviewNote)}</p>` : ""}
+          <label class="field">Decision note (required for verify, re-upload, suspicious or reject)<textarea class="review-note" maxlength="500" placeholder="For verification, record the issuer and official channel or reference used.">${escapeHtml(doc.reviewStatus === "needs_changes" || doc.reviewStatus === "verified" || doc.reviewStatus === "suspicious" || doc.reviewStatus === "rejected" ? doc.reviewNote : "")}</textarea></label>
+          <div class="actions">
+            <a class="file-link" href="/api/admin/documents/${doc.id}/file" target="_blank" rel="noopener noreferrer">↗ Open private file</a>
+            ${!["approved", "verified"].includes(doc.reviewStatus) ? `<button class="button approve" type="button" data-review="approved">Approve visual review</button>` : ""}
+            ${doc.reviewStatus !== "verified" ? `<button class="button approve" type="button" data-review="verified">Verify via issuer</button>` : ""}
+            ${doc.reviewStatus !== "needs_changes" ? `<button class="button request" type="button" data-review="needs_changes">Request re-upload</button>` : ""}
+            ${doc.reviewStatus !== "suspicious" ? `<button class="button alert" type="button" data-review="suspicious">Mark suspicious</button>` : ""}
+            ${doc.reviewStatus !== "rejected" ? `<button class="button quiet" type="button" data-review="rejected">Reject document</button>` : ""}
+          </div>
+        </article>`;
+      }).join("");
+    }
+    async function loadQueue() {
+      queue.innerHTML = `<div class="empty">Loading document queue…</div>`;
+      try {
+        const result = await api("/api/admin/documents?status=all");
+        documents = result.documents;
+        document.getElementById("pendingCount").textContent = documents.filter((doc) => doc.reviewStatus === "pending").length;
+        document.getElementById("changesCount").textContent = documents.filter((doc) => doc.reviewStatus === "needs_changes").length;
+        document.getElementById("approvedCount").textContent = documents.filter((doc) => doc.reviewStatus === "approved").length;
+        renderQueue();
+      } catch (error) {
+        queue.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+        if (error.message.includes("Admin sign-in")) {
+          portalView.hidden = true;
+          authView.hidden = false;
+        }
+      }
+    }
+    emailForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = emailInput.value.trim().toLowerCase();
+      try {
+        await api("/api/auth/request-code", { method:"POST", body:JSON.stringify({ email, intent:"login" }) });
+        adminAddress = email;
+        emailForm.hidden = true;
+        codeForm.hidden = false;
+        document.getElementById("authTitle").textContent = "Check your email";
+        document.getElementById("authIntro").textContent = "Enter the six-digit sign-in code. Access is still restricted to configured admin emails.";
+        codeInput.focus();
+        announce("If the email is eligible, a code was sent.");
+      } catch (error) { announce(error.message); }
+    });
+    codeForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        const result = await api("/api/admin/auth/verify-code", { method:"POST", body:JSON.stringify({ email:adminAddress, code:codeInput.value }) });
+        setSignedIn(result.user.email);
+      } catch (error) { announce(error.message); }
+    });
+    document.getElementById("backButton").addEventListener("click", () => {
+      codeForm.hidden = true;
+      emailForm.hidden = false;
+      codeInput.value = "";
+      document.getElementById("authTitle").textContent = "Admin sign-in";
+      document.getElementById("authIntro").textContent = "Use an authorised admin email. A one-time code will be sent to your inbox.";
+    });
+    document.getElementById("logoutButton").addEventListener("click", async () => {
+      try {
+        await api("/api/admin/auth/logout", { method:"POST", body:"{}" });
+        portalView.hidden = true;
+        authView.hidden = false;
+        document.getElementById("logoutButton").hidden = true;
+        document.getElementById("adminEmail").textContent = "";
+      } catch (error) { announce(error.message); }
+    });
+    statusFilter.addEventListener("change", renderQueue);
+    queue.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-review]");
+      if (!button) return;
+      const card = button.closest("[data-id]");
+      const note = card.querySelector(".review-note").value.trim();
+      if (["needs_changes", "verified", "suspicious", "rejected"].includes(button.dataset.review) && !note) {
+        announce(button.dataset.review === "verified" ? "Record the official issuer channel or evidence used." : "Add a reviewer note for this decision.");
+        card.querySelector(".review-note").focus();
+        return;
+      }
+      button.disabled = true;
+      try {
+        await api(`/api/admin/documents/${card.dataset.id}/review`, {
+          method:"PATCH",
+          body:JSON.stringify({ status:button.dataset.review, note })
+        });
+        const messages = {
+          approved:"Visual review approved. Authenticity has not been verified.",
+          verified:"Verified by an authorised reviewer using the issuer evidence recorded.",
+          needs_changes:"Re-upload requested. The applicant can replace this file.",
+          suspicious:"Flagged for additional review; this does not automatically reject the applicant.",
+          rejected:"Document marked not accepted; the applicant can see the decision without internal screening details."
+        };
+        announce(messages[button.dataset.review]);
+        await loadQueue();
+      } catch (error) {
+        button.disabled = false;
+        announce(error.message);
+      }
+    });
+    window.setInterval(() => {
+      if (!portalView.hidden && document.visibilityState === "visible") loadQueue();
+    }, 15000);
+    initialize();
+  </script>
+</body>
+</html>
