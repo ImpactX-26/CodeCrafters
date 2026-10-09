@@ -904,6 +904,7 @@
     let serverRoadmap = null;
     let serverHandoff = null;
     let assistantAnswer = "";
+    let assistantAiConsent = false;
     let cvData = window.JournovaCvBuilder.normalize({});
     let cvTargetApplicationId = "";
     let cvRecords = [];
@@ -1678,7 +1679,7 @@
       window.clearTimeout(cvSaveTimer);
       const id = cvRecordId;
       const title = screenContent.querySelector("[data-cv-title]")?.value.trim() || cvRecordTitle || "Untitled CV";
-      cvSaveQueue = cvSaveQueue.then(async () => {
+      const saveOperation = cvSaveQueue.catch(() => {}).then(async () => {
         const result = await api(`/api/cv/${encodeURIComponent(id)}`, {
           method: "PUT",
           body: JSON.stringify({ title, data: cvData })
@@ -1691,11 +1692,12 @@
         }
         if (showConfirmation) announce("CV saved to your private CV library.");
         return result.cv;
-      }).catch((error) => {
+      });
+      cvSaveQueue = saveOperation.catch(() => {});
+      return saveOperation.catch((error) => {
         announce(`CV could not be saved: ${error.message}`);
         throw error;
       });
-      return cvSaveQueue;
     }
     function scheduleSaveCv() {
       window.clearTimeout(cvSaveTimer);
@@ -1767,7 +1769,7 @@
       if (pageLabel) pageLabel.textContent = `Page ${cvPage} / ${pageCount}`;
     }
     function renderAssistant() {
-      return `<div class="screen-head"><div><span class="kicker">Tools</span><h1>AI Assistant</h1><p>Ask about your profile, document checklist, language or next steps.</p></div></div><section class="glass-card chat-card"><div class="message-preview" style="margin-bottom:14px">I can help explain your profile checklist and official resources. For legal or eligibility decisions, verify details with official German sources.</div><label class="field-label" for="assistantQuestion">Your question</label><textarea class="answer-control" id="assistantQuestion" rows="3" maxlength="1000" placeholder="What should I prepare for my route?"></textarea><div class="bottom-actions"><button class="next-button" type="button" data-action="ask-assistant">Ask</button></div>${assistantAnswer ? `<div class="glass-card panel-pad" style="margin-top:16px"><strong style="font-size:11px">Journova Assistant</strong><p style="font-size:12px;line-height:1.6">${escapeHtml(assistantAnswer)}</p><p class="indicative-note">Profile-aware guidance rules · no external AI service connected</p></div>` : ""}</section>`;
+      return `<div class="screen-head"><div><span class="kicker">Tools</span><h1>AI Assistant</h1><p>Ask about your profile, document checklist, language or next steps.</p></div></div><section class="glass-card chat-card"><div class="message-preview" style="margin-bottom:14px">Get AI-generated guidance tailored to relevant details in your saved profile. For legal or eligibility decisions, verify details with official German sources.</div><label class="field-label" for="assistantQuestion">Your question</label><textarea class="answer-control" id="assistantQuestion" rows="3" maxlength="1000" placeholder="What should I prepare for my route?"></textarea><label class="consent" style="margin:14px 0"><input type="checkbox" data-assistant-ai-consent ${assistantAiConsent ? "checked" : ""}><span>I agree to send my question and relevant saved profile details to the configured AI provider for an answer. Do not include sensitive details you do not want shared.</span></label><p class="indicative-note">AI answers can be inaccurate. Confirm current requirements with official sources. AI assistance requires server-side provider configuration.</p><div class="bottom-actions"><button class="next-button" type="button" data-action="ask-assistant">Ask</button></div>${assistantAnswer ? `<div class="glass-card panel-pad" style="margin-top:16px"><strong style="font-size:11px">Journova Assistant</strong><p style="font-size:12px;line-height:1.6">${escapeHtml(assistantAnswer)}</p><p class="indicative-note">AI-generated guidance · verify current requirements with official sources</p></div>` : ""}</section>`;
     }
     function renderSettings() {
       const workspaceType = guestMode ? "Guest workspace" : "Existing account session";
@@ -2100,12 +2102,22 @@
       panel.innerHTML = `<strong>CV completeness · ${result.score}/100</strong>${checks}<ul>${recommendations}</ul><p class="indicative-note">This local checklist is not an eligibility or hiring score. No external AI service is connected.</p>`;
     }
     function cvHasContent() {
-      return Boolean(cvData.personal.name || cvData.personal.title || cvData.summary ||
-        cvData.education.some((item) => Object.values(item).some(Boolean)) ||
-        cvData.skills.some((item) => item.name) ||
-        cvData.projects.some((item) => Object.values(item).some(Boolean)) ||
-        cvData.experience.some((item) => Object.values(item).some(Boolean)) ||
-        Object.values(cvData.extras).some((items) => items.some((item) => Object.values(item).some(Boolean))));
+      const hasEntryContent = (entries) => entries.some((item) =>
+        Object.values(item).some((value) => typeof value === "string" ? Boolean(value.trim()) : Boolean(value))
+      );
+      const sections = [
+        cvData.education,
+        cvData.skills,
+        cvData.projects,
+        cvData.experience,
+        cvData.hackathons,
+        cvData.certifications,
+        cvData.languages,
+        cvData.achievements,
+        ...Object.values(cvData.extras)
+      ];
+      return Boolean(cvData.personal.name || cvData.personal.title || cvData.careerGoal || cvData.summary ||
+        sections.some(hasEntryContent));
     }
     async function saveCv(addToDocuments = false) {
       if (!cvHasContent()) {
@@ -2352,13 +2364,20 @@
           announce(error.message);
         }
       } else if (action === "ask-assistant") {
+        if (!assistantAiConsent) {
+          announce("Review and accept the AI data-sharing notice before sending your question and relevant profile details.");
+          return;
+        }
         const question = document.getElementById("assistantQuestion").value;
+        button.disabled = true;
         try {
           const result = await api("/api/assistant", { method: "POST", body: JSON.stringify({ question }) });
           assistantAnswer = result.answer;
           renderScreen();
         } catch (error) {
           announce(error.message);
+        } finally {
+          if (button.isConnected) button.disabled = false;
         }
       } else if (action === "cv-add") {
         const section = button.dataset.section;
@@ -2687,6 +2706,9 @@
       else if (input.matches("[data-cv-ai-consent]")) {
         cvAiConsent = input.checked;
         profile.cvAiConsent = cvAiConsent;
+      }
+      else if (input.matches("[data-assistant-ai-consent]")) {
+        assistantAiConsent = input.checked;
       }
       else if (input.matches("[data-cv-application]")) {
         cvTargetApplicationId = input.value;

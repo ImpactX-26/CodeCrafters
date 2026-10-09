@@ -1,0 +1,41 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://YOUR-RENDER-SERVICE.onrender.com/api/:path*"
+    },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/register", "destination": "/index.html" },
+    { "source": "/dashboard", "destination": "/index.html" },
+    { "source": "/onboarding", "destination": "/index.html" },
+    { "source": "/profile", "destination": "/index.html" },
+    { "source": "/documents", "destination": "/index.html" },
+    { "source": "/documents/verification", "destination": "/index.html" },
+    { "source": "/qualification", "destination": "/index.html" },
+    { "source": "/cv", "destination": "/index.html" },
+    { "source": "/opportunities", "destination": "/index.html" },
+    { "source": "/opportunities/matches", "destination": "/index.html" },
+    { "source": "/opportunities/study", "destination": "/index.html" },
+    { "source": "/opportunities/ausbildung", "destination": "/index.html" },
+    { "source": "/opportunities/jobs", "destination": "/index.html" },
+    { "source": "/applications", "destination": "/index.html" },
+    { "source": "/journey", "destination": "/index.html" },
+    { "source": "/journey/ready", "destination": "/index.html" },
+    { "source": "/roadmap", "destination": "/index.html" },
+    { "source": "/assistant", "destination": "/index.html" },
+    { "source": "/settings", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "same-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'" }
+      ]
+    }
+  ]
+}

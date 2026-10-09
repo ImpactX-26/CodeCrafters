@@ -7,15 +7,27 @@ Journova is a responsive applicant-journey web app with an Express API and a loc
 Requirements: Node.js 22.5 or newer.
 
 ```powershell
-npm.cmd install
+cd backend
+npm.cmd ci
 npm.cmd run dev
 ```
 
-Open <http://localhost:3000>. The `dev` command serves both the frontend and API from the same Express server; there is no separate frontend port. In PowerShell, use `npm.cmd` to avoid execution-policy errors when `npm` resolves to `npm.ps1`. Applicant pages now open directly into the dashboard. The API creates an isolated guest workspace when no valid applicant session cookie exists; applicant data and uploads remain in the server's SQLite database and upload directory, not solely in the browser. The HttpOnly session cookie lasts 14 days. Guest workspaces have no email-based account recovery, so delete workspace data in Settings before clearing site cookies if you want to remove it.
+Open <http://localhost:3000>. The frontend files live in `frontend/`; the Express API, dependencies, and environment template live in `backend/`. For local development, the API serves the frontend files from that sibling folder. In PowerShell, use `npm.cmd` to avoid execution-policy errors when `npm` resolves to `npm.ps1`. Applicant pages now open directly into the dashboard. The API creates an isolated guest workspace when no valid applicant session cookie exists; applicant data and uploads remain in the server's SQLite database and upload directory, not solely in the browser. The HttpOnly session cookie lasts 14 days. Guest workspaces have no email-based account recovery, so delete workspace data in Settings before clearing site cookies if you want to remove it.
 
 The `/login` and `/register` URLs remain compatible with existing links but redirect into the dashboard. Existing applicant authentication endpoints and sessions are retained for compatibility; the applicant login/register screen is no longer the entry flow. Admin access remains separate at `/admin`.
 
 The earlier `file:///.../index.html` page cannot call the Express API. Use the HTTP address above.
+
+## Deploy frontend and backend separately
+
+The Vercel frontend proxies `/api/*` requests to Render. This keeps browser requests same-origin, so the existing secure session-cookie behavior continues to work; do not change the frontend API URLs to point directly at the Render domain.
+
+1. Import this repository into Vercel and set the project Root Directory to `frontend`. It is a static site: leave the build command empty and use the default output directory. Deploy once to get the Vercel site origin; the API will not work until the Render service is configured.
+2. Create the Render web service from this repository using the Blueprint file at `backend/render.yaml`. It builds and starts the service from `backend/`, runs the health check at `/api/health`, and mounts a persistent disk for SQLite data and uploads. The persistent disk requires a paid Render plan.
+3. Set Render's `APP_ORIGIN` to the exact Vercel site origin, such as `https://your-project.vercel.app` (no trailing slash). Comma-separate additional exact Vercel origins if required. Configure optional server-only AI, SMTP, and admin environment variables in the Render dashboard; never put secrets in the frontend.
+4. In `frontend/vercel.json`, replace `YOUR-RENDER-SERVICE` with the Render service hostname assigned to your deployed API, without adding a trailing slash. For example, use `https://journova-api.onrender.com` as the `destination` origin. Redeploy Vercel to activate the API proxy.
+
+The Vercel rewrites include the existing applicant-page routes and `/admin`; static assets remain served directly by Vercel. The Render backend can also serve the same frontend files for local development. Keep `APP_ORIGIN` aligned with the public Vercel origin so the API accepts proxied browser requests.
 
 ## Admin document review
 
@@ -33,18 +45,18 @@ The upload report records file-signature/readability checks, profile and require
 
 ## Admin email sign-in
 
-Copy `.env.example` to `.env`, then fill in the SMTP settings supplied by your email provider. Never commit `.env` or paste credentials into source code. Start the regular server with `npm start`; the admin portal sends an actual one-time code through SMTP. Without SMTP configuration the API returns an explicit configuration error instead of accepting a fake code.
+From `backend/`, copy `.env.example` to `.env`, then fill in the SMTP settings supplied by your email provider. Never commit `.env` or paste credentials into source code. Start the regular server with `npm start`; the admin portal sends an actual one-time code through SMTP. Without SMTP configuration the API returns an explicit configuration error instead of accepting a fake code.
 
 Set `NODE_ENV=production`, `APP_ORIGIN`, HTTPS, and a persistent database/upload volume when deploying. The production server does not expose the local development session endpoint.
 
 ## Data and service boundaries
 
-- SQLite stores user profiles, consent, applications, and handoff requests in `data/journova.sqlite`.
-- Uploaded documents are stored under `data/uploads/`, outside the static web root, and are only available to the authenticated account through the API.
+- SQLite stores user profiles, consent, applications, and handoff requests in `backend/data/journova.sqlite` during local development. Render uses the configured persistent disk at `/var/data/journova.sqlite`.
+- Uploaded documents are stored under `backend/data/uploads/` locally and `/var/data/uploads/` on Render, outside the static web root, and are only available to the authenticated account through the API.
 - Documents are limited to 10 MB and checked for supported extension and file signature/basic readability. Screening reports persist alongside the existing document records. No AI/OCR or issuer verification service is connected; see Admin document review for the exact limitations and human-review workflow.
 - Qualification Check builds a read-only qualification profile from the existing journey profile, CV profile and document review records (`GET /api/qualification`). It shows linked profile fields, required-document gaps, reviewer status, local file checks, and labelled fields from TXT uploads. Differing extracted name/institution labels are only possible mismatches for the applicant to review; profile data is never changed automatically. PDFs and images are not OCR-processed, and text comparison is not identity or authenticity verification.
 - The readiness score and route-fit percentages are indicative rules-based estimates, not admission, employment, or visa decisions.
-- The assistant currently uses profile-aware rules and static guidance; no external AI provider is connected.
+- The AI Assistant sends the user's question and relevant saved profile details to the configured OpenAI-compatible provider after the user accepts the data-sharing notice. Set `AI_API_KEY`, `AI_BASE_URL`, and `AI_MODEL` on the server to enable it; the API key is never sent to the browser. Without provider configuration, assistant requests return an explicit setup error. AI answers can be inaccurate and are not legal or eligibility decisions; users should confirm current requirements with official sources.
 - The Applications workspace adds an explainable next-best-action planner using profile completion, route-specific document review states, applicant-entered provider requirements, and deadlines. Its planning-readiness percentage is a progress indicator—not an eligibility decision. Enter requirements and dates from official provider instructions; there is no live external AI or provider-requirements feed.
 - My Journey builds its existing roadmap from the saved onboarding answers, selected route, document upload/admin-review states, CV data, and application statuses. The timeline labels missing/re-requested items as actions, distinguishes pending review from completion, and gives up to three current priorities with links to the relevant workspace. If no target start date is saved, milestone dates use a clearly labelled planning estimate. This is an indicative personal checklist, not a live AI service, official requirements feed, proof of document authenticity, or immigration/admission/employment advice.
 - The home dashboard and Opportunities page share a two-column Study / Job matching hub. It shows Germany-wide totals from the Federal Employment Agency Job Search API (regular vacancies and Ausbildung/dual-study vacancies) and the DAAD/HRK Higher Education Compass (degree programmes). Counts are fetched server-side, cached for 15 minutes, and display their last successful update; an unavailable source is shown as unavailable rather than replaced with a fabricated number.

@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: journova-api
+    runtime: node
+    plan: starter
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: journova-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /var/data/journova.sqlite
+      - key: UPLOAD_DIRECTORY
+        value: /var/data/uploads
+      - key: APP_ORIGIN
+        sync: false
